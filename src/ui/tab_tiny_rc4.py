@@ -120,8 +120,6 @@ def build_tab_tiny_rc4() -> None:
                 ]
                 ui.table(columns=prga_cols, rows=prga_rows, row_key="step").classes("w-full")
 
-            ui.run_javascript("triggerMathRender(80);")
-
         def handle_tiny_run(mode_label: str = "Mã hóa / Giải mã") -> None:
             try:
                 res = run_tiny_rc4(tiny_in.value, tiny_key.value)

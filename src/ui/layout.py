@@ -127,8 +127,6 @@ def build_nicegui_interface() -> None:
         tab4 = ui.tab("4. Tấn Công Dòng Khóa & Đo Tốc Độ", icon="security")
         tab5 = ui.tab("5. Tìm Hiểu Hệ Mã (Tóm Tắt)", icon="menu_book")
 
-    # Kích hoạt render lại công thức Math KaTeX khi chuyển Tab
-    tabs.on_change(lambda: ui.run_javascript("triggerMathRender(100);"))
 
     # 5. Khung chứa nội dung 5 Tab Panels
     with ui.tab_panels(tabs, value=tab1).classes("w-full max-w-7xl mx-auto p-4"):

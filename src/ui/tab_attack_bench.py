@@ -77,8 +77,6 @@ $$C_1 \oplus C_2 = (P_1 \oplus S) \oplus (P_2 \oplus S) = P_1 \oplus P_2$$
                                 "text-base font-mono font-bold text-rose-800"
                             )
 
-                ui.run_javascript("triggerMathRender(80);")
-
             ui.button("Thực hiện Tấn công Thám mã (Known-Plaintext)", icon="gpp_bad", on_click=run_attack_ui).props(
                 "color=negative"
             )
