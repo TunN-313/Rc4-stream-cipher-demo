@@ -3,7 +3,7 @@ Tab 1: Thực Thi & Trực Quan Hóa Từng Bước TinyRC4 (3-bit)
 ==========================================================
 Bám sát Slide 53-60 bài giảng ATBMTT (Khoa CNTT - ĐH Kinh tế Quốc dân)
 Mô hình thu nhỏ: Đơn vị 3-bit, mảng S & T gồm 8 phần tử (0..7), modulo 8.
-Tích hợp hiển thị công thức toán học KaTeX.
+Giao diện sắc nét, bảng biểu trực quan và chip quy đổi ký tự chuẩn.
 """
 
 from __future__ import annotations
@@ -17,12 +17,26 @@ def build_tab_tiny_rc4() -> None:
     """Xây dựng giao diện Tab 1: TinyRC4 Step-by-Step."""
     with ui.card().classes("w-full p-5 mb-4 border-l-4 border-blue-700 shadow-sm"):
         ui.label("Mô hình thu nhỏ TinyRC4 (Đơn vị mã hóa 3-bit, mảng S và T gồm 8 phần tử 0..7)").classes(
-            "text-lg font-bold text-slate-800"
+            "text-lg font-bold text-slate-800 mb-2"
         )
-        ui.markdown(
-            r"Bảng quy đổi chuẩn trên lớp (Slide 40): "
-            r"$A=000(0) \mid B=001(1) \mid C=010(2) \mid D=011(3) \mid E=100(4) \mid F=101(5) \mid G=110(6) \mid H=111(7)$"
-        ).classes("text-sm text-slate-600 mb-3 font-mono bg-slate-100 p-2 rounded")
+
+        # 8 Chips quy đổi ký tự 3-bit đẹp mắt, dễ đọc
+        with ui.row().classes("w-full items-center gap-2 mb-4 bg-slate-50 p-2.5 rounded border flex-wrap"):
+            ui.label("Bảng quy đổi 3-bit (Slide 40):").classes("text-xs font-bold text-slate-700 mr-1")
+            alphabet_mapping = [
+                ("A", "000 (0)"),
+                ("B", "001 (1)"),
+                ("C", "010 (2)"),
+                ("D", "011 (3)"),
+                ("E", "100 (4)"),
+                ("F", "101 (5)"),
+                ("G", "110 (6)"),
+                ("H", "111 (7)"),
+            ]
+            for letter, val in alphabet_mapping:
+                with ui.row().classes("items-center gap-1 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs font-mono text-xs"):
+                    ui.label(letter).classes("font-bold text-blue-700")
+                    ui.label(f": {val}").classes("text-slate-600")
 
         with ui.row().classes("w-full gap-4 items-end"):
             tiny_in = ui.input(
@@ -64,10 +78,10 @@ def build_tab_tiny_rc4() -> None:
                 ui.label("Giai đoạn 1: Khởi tạo & Hoán vị mảng S (KSA — 8 vòng từ i = 0 đến 7)").classes(
                     "text-base font-bold text-slate-800 mt-4"
                 )
-                ui.markdown(
-                    f"*Khởi tạo ban đầu:* $S_0 = {res.initial_s}$, $T_0 = {res.initial_t}$  "
-                    f"$\\implies$ *Mảng S sau KSA:* $\\mathbf{{S_7 = {res.final_ksa_s}}}$"
-                ).classes("text-sm text-slate-700")
+                with ui.row().classes("w-full items-center gap-2 text-sm font-mono text-slate-700 mt-1 mb-2"):
+                    ui.label(f"Khởi tạo ban đầu: S = {res.initial_s} | T = {res.initial_t}")
+                    ui.icon("arrow_forward", size="xs").classes("text-blue-600")
+                    ui.badge(f"Mảng S sau KSA (i=7): {res.final_ksa_s}", color="primary").classes("px-2 py-0.5 text-xs font-mono")
 
                 ksa_cols = [
                     {"name": "step_i", "label": "Vòng i", "field": "step_i", "align": "center"},

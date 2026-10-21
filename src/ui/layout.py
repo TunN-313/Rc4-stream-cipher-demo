@@ -18,8 +18,7 @@ from src.ui.tab_theory import build_tab_theory
 def _inject_katex_and_fonts() -> None:
     """
     Tích hợp phông chữ tiếng Việt chuẩn (Inter + JetBrains Mono)
-    và cấu hình KaTeX Math Engine an toàn (chỉ nhận $...$ và $$...$$,
-    tuyệt đối không nhận dấu ngoặc đơn thông thường (...)).
+    và cấu hình KaTeX Math Engine an toàn (chỉ nhận $$...$$ và $...$).
     """
     ui.add_head_html(
         """
@@ -28,7 +27,7 @@ def _inject_katex_and_fonts() -> None:
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-        <!-- 2. KaTeX CSS & JS -->
+        <!-- 2. KaTeX CSS & JS Core -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
@@ -47,6 +46,17 @@ def _inject_katex_and_fonts() -> None:
             /* Định dạng công thức toán học KaTeX */
             .katex { font-size: 1.05em; line-height: 1.2; }
             .katex-display { margin: 0.8em 0; overflow-x: auto; overflow-y: hidden; padding: 0.25em 0; }
+
+            /* Tối ưu thanh Tabs để không bị tràn màn hình */
+            .q-tabs--dense .q-tab {
+                min-height: 48px;
+                padding: 0 14px;
+            }
+            .q-tab__label {
+                font-size: 0.85rem !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.01em;
+            }
         </style>
 
         <script>
@@ -60,7 +70,7 @@ def _inject_katex_and_fonts() -> None:
                         if (window._katexObserver) {
                             window._katexObserver.disconnect();
                         }
-                        // CHỈ nhận dạng $...$ và $$...$$, TUYỆT ĐỐI KHÔNG bắt cặp ngoặc đơn (...)
+                        // CHỈ nhận dạng $$...$$ và $...$, không bắt ngoặc đơn (...)
                         renderMathInElement(document.body, {
                             delimiters: [
                                 {left: '$$', right: '$$', display: true},
@@ -139,13 +149,13 @@ def build_nicegui_interface() -> None:
                 )
         ui.badge("Python + NiceGUI | Tự cài đặt 100% từ đầu", color="secondary").classes("px-3 py-1 text-xs")
 
-    # 4. Thanh điều hướng 5 Tab
-    with ui.tabs().classes("w-full bg-slate-100 text-slate-800 shadow-sm sticky top-0 z-10") as tabs:
-        tab1 = ui.tab("1. Thực Thi TinyRC4 (3-bit)", icon="calculate")
-        tab2 = ui.tab("2. RC4 Chuẩn (256-byte & File/Ảnh)", icon="lock")
-        tab3 = ui.tab("3. Kiểm Thử & Đối Chiếu (RFC 6229)", icon="verified")
-        tab4 = ui.tab("4. Tấn Công Dòng Khóa & Đo Tốc Độ", icon="security")
-        tab5 = ui.tab("5. Tìm Hiểu Hệ Mã (Tóm Tắt)", icon="menu_book")
+    # 4. Thanh điều hướng 5 Tab (Tên gọn gàng, hiển thị vừa vặn 100% trên mọi kích thước màn hình)
+    with ui.tabs().props("dense inline-label align=justify").classes("w-full bg-slate-100 text-slate-800 shadow-sm sticky top-0 z-10") as tabs:
+        tab1 = ui.tab("1. TinyRC4 (3-bit)", icon="calculate")
+        tab2 = ui.tab("2. RC4 Chuẩn & File", icon="lock")
+        tab3 = ui.tab("3. Kiểm Thử (RFC 6229)", icon="verified")
+        tab4 = ui.tab("4. Tấn Công & Tốc Độ", icon="security")
+        tab5 = ui.tab("5. Lý Thuyết & So Sánh", icon="menu_book")
 
     # 5. Khung chứa nội dung 5 Tab Panels
     with ui.tab_panels(tabs, value=tab1).classes("w-full max-w-7xl mx-auto p-4"):
