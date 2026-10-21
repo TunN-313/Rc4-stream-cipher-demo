@@ -1,0 +1,4 @@
+Học phần: An toàn và Bảo mật Thông tin (Chương 2: Mã hóa khóa đối xứng)
+Khoa Công nghệ Thông tin - Đại học Kinh tế Quốc dân (NEU)
+Dự án: Hệ Mã Dòng RC4 & TinyRC4 với giao diện NiceGUI
+Test Unicode: Xin chào các bạn sinh viên NEU! RC4 là một thuật toán mã hóa dòng kinh điển do Ron Rivest phát minh năm 1987.
