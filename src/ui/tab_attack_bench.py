@@ -3,6 +3,7 @@ Tab 4: Đo Hiệu Năng & Tấn Công Dòng Khóa (Điểm Cộng Khuyến Khíc
 ================================================================
 1. Tấn công dùng lại dòng khóa (Keystream Reuse / Two-Time Pad Attack) & Crib-dragging
 2. Đo thời gian thực thi theo kích thước dữ liệu (1KB -> 1MB) và vẽ biểu đồ ui.echart
+Tích hợp hiển thị công thức toán học KaTeX.
 """
 
 from __future__ import annotations
@@ -23,10 +24,13 @@ def build_tab_attack_bench() -> None:
             ui.label("1. Minh họa Tấn công Dùng lại Dòng khóa (Keystream Reuse Attack)").classes(
                 "text-lg font-bold text-slate-800"
             )
-            ui.label(
-                "Khi 2 bản rõ P1, P2 dùng chung một khóa K (lỗi bảo mật nổi tiếng trong WEP), "
-                "kẻ tấn công tính C1 ⊕ C2 = (P1 ⊕ S) ⊕ (P2 ⊕ S) = P1 ⊕ P2 (triệt tiêu hoàn toàn khóa S!)."
-            ).classes("text-xs text-slate-600 mb-2")
+            ui.markdown(
+                r"""
+Khi hai bản rõ $P_1, P_2$ bị mã hóa bằng **cùng một khóa $K$** (lỗ hổng kinh điển trong WEP), kẻ tấn công tính:
+$$C_1 \oplus C_2 = (P_1 \oplus S) \oplus (P_2 \oplus S) = P_1 \oplus P_2$$
+*(Dòng khóa $S$ bị triệt tiêu hoàn toàn! Kẻ tấn công dùng kỹ thuật Crib-dragging để đọc trộm bản rõ mà không cần khóa $K$).*
+                """
+            ).classes("text-xs text-slate-700 bg-rose-50 border border-rose-100 p-3 rounded mb-2")
 
             atk_p1 = ui.input(
                 label="Bản rõ P1",
@@ -72,6 +76,8 @@ def build_tab_attack_bench() -> None:
                             ui.label(f"→ Đoạn bản rõ P2 lộ ra: \"{recovered_p2}\"").classes(
                                 "text-base font-mono font-bold text-rose-800"
                             )
+
+                ui.run_javascript("triggerMathRender(80);")
 
             ui.button("Thực hiện Tấn công Thám mã (Known-Plaintext)", icon="gpp_bad", on_click=run_attack_ui).props(
                 "color=negative"

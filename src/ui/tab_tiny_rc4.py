@@ -3,6 +3,7 @@ Tab 1: Thực Thi & Trực Quan Hóa Từng Bước TinyRC4 (3-bit)
 ==========================================================
 Bám sát Slide 53-60 bài giảng ATBMTT (Khoa CNTT - ĐH Kinh tế Quốc dân)
 Mô hình thu nhỏ: Đơn vị 3-bit, mảng S & T gồm 8 phần tử (0..7), modulo 8.
+Tích hợp hiển thị công thức toán học KaTeX.
 """
 
 from __future__ import annotations
@@ -18,9 +19,9 @@ def build_tab_tiny_rc4() -> None:
         ui.label("Mô hình thu nhỏ TinyRC4 (Đơn vị mã hóa 3-bit, mảng S và T gồm 8 phần tử 0..7)").classes(
             "text-lg font-bold text-slate-800"
         )
-        ui.label(
-            "Bảng quy đổi chuẩn trên lớp (Slide 40): "
-            "A=000 (0) | B=001 (1) | C=010 (2) | D=011 (3) | E=100 (4) | F=101 (5) | G=110 (6) | H=111 (7)"
+        ui.markdown(
+            r"Bảng quy đổi chuẩn trên lớp (Slide 40): "
+            r"$A=000(0) \mid B=001(1) \mid C=010(2) \mid D=011(3) \mid E=100(4) \mid F=101(5) \mid G=110(6) \mid H=111(7)$"
         ).classes("text-sm text-slate-600 mb-3 font-mono bg-slate-100 p-2 rounded")
 
         with ui.row().classes("w-full gap-4 items-end"):
@@ -63,10 +64,10 @@ def build_tab_tiny_rc4() -> None:
                 ui.label("Giai đoạn 1: Khởi tạo & Hoán vị mảng S (KSA — 8 vòng từ i = 0 đến 7)").classes(
                     "text-base font-bold text-slate-800 mt-4"
                 )
-                ui.label(
-                    f"Khởi tạo ban đầu: S = {res.initial_s}  |  T = {res.initial_t}  "
-                    f"→  Kết quả S sau khi i = 7: {res.final_ksa_s}"
-                ).classes("text-sm font-mono text-slate-700")
+                ui.markdown(
+                    f"*Khởi tạo ban đầu:* $S_0 = {res.initial_s}$, $T_0 = {res.initial_t}$  "
+                    f"$\\implies$ *Mảng S sau KSA:* $\\mathbf{{S_7 = {res.final_ksa_s}}}$"
+                ).classes("text-sm text-slate-700")
 
                 ksa_cols = [
                     {"name": "step_i", "label": "Vòng i", "field": "step_i", "align": "center"},
@@ -101,7 +102,7 @@ def build_tab_tiny_rc4() -> None:
                     {"name": "s_arr", "label": "Mảng S sau Swap(S[i], S[j])", "field": "s_arr", "align": "left"},
                     {"name": "t_idx", "label": "t = (S[i]+S[j]) mod 8", "field": "t_idx", "align": "center"},
                     {"name": "ks", "label": "Số sinh s = S[t]", "field": "ks", "align": "center"},
-                    {"name": "xor_op", "label": "Phép tính XOR (3-bit)", "field": "xor_op", "align": "left"},
+                    {"name": "xor_op", "label": "Phép tính XOR: p ⊕ k = c", "field": "xor_op", "align": "left"},
                 ]
                 prga_rows = [
                     {
@@ -118,6 +119,8 @@ def build_tab_tiny_rc4() -> None:
                     for st in res.prga_steps
                 ]
                 ui.table(columns=prga_cols, rows=prga_rows, row_key="step").classes("w-full")
+
+            ui.run_javascript("triggerMathRender(80);")
 
         def handle_tiny_run(mode_label: str = "Mã hóa / Giải mã") -> None:
             try:
