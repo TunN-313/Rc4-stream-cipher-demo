@@ -1,0 +1,28 @@
+# Python Bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# NiceGUI / App cache
+.nicegui/
+.storage/
+
+# IDE and Antigravity
+.vscode/
+.idea/
+.gemini/
+.agents/
+
+# Temporary / OS
+.DS_Store
+Thumbs.db
+*.rc4
