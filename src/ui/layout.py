@@ -2,7 +2,7 @@
 Bố Cục Chính & Khung Điều Hướng NiceGUI (src/ui/layout.py)
 =========================================================
 Quản lý Header, Bảng màu sắc thương hiệu NEU CNTT, Thanh điều hướng 5 Tab,
-tích hợp thư viện KaTeX để hiển thị công thức toán học LaTeX chuẩn xác.
+phông chữ chuẩn tiếng Việt Inter / JetBrains Mono và tích hợp KaTeX Math an toàn.
 """
 
 from __future__ import annotations
@@ -15,21 +15,38 @@ from src.ui.tab_attack_bench import build_tab_attack_bench
 from src.ui.tab_theory import build_tab_theory
 
 
-def _inject_katex_math_support() -> None:
-    """Tích hợp thư viện KaTeX CDN và script tự động render công thức toán học."""
+def _inject_katex_and_fonts() -> None:
+    """
+    Tích hợp phông chữ tiếng Việt chuẩn (Inter + JetBrains Mono)
+    và cấu hình KaTeX Math Engine an toàn (chỉ nhận $...$ và $$...$$,
+    tuyệt đối không nhận dấu ngoặc đơn thông thường (...)).
+    """
     ui.add_head_html(
         """
-        <!-- KaTeX CSS & Fonts -->
+        <!-- 1. Google Fonts: Inter cho giao diện tiếng Việt và JetBrains Mono cho mã nguồn -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+        <!-- 2. KaTeX CSS & JS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-        <!-- KaTeX JS Core -->
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-        <!-- KaTeX Auto-render Extension -->
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
         <style>
-            .katex { font-size: 1.08em; line-height: 1.2; }
-            .katex-display { margin: 0.75em 0; overflow-x: auto; overflow-y: hidden; padding: 0.25em 0; }
-            .math-inline { display: inline-block; }
+            /* Áp dụng phông chữ Inter chuẩn tiếng Việt đẹp mắt, chống lỗi chân chữ */
+            body, button, input, textarea, select, .q-tab, .q-header, .q-card {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            code, pre, .font-mono {
+                font-family: 'JetBrains Mono', Consolas, Monaco, monospace !important;
+            }
+
+            /* Định dạng công thức toán học KaTeX */
+            .katex { font-size: 1.05em; line-height: 1.2; }
+            .katex-display { margin: 0.8em 0; overflow-x: auto; overflow-y: hidden; padding: 0.25em 0; }
         </style>
 
         <script>
@@ -43,15 +60,18 @@ def _inject_katex_math_support() -> None:
                         if (window._katexObserver) {
                             window._katexObserver.disconnect();
                         }
+                        // CHỈ nhận dạng $...$ và $$...$$, TUYỆT ĐỐI KHÔNG bắt cặp ngoặc đơn (...)
                         renderMathInElement(document.body, {
                             delimiters: [
                                 {left: '$$', right: '$$', display: true},
-                                {left: '$', right: '$', display: false},
-                                {left: '\\(', right: '\\)', display: false},
-                                {left: '\\[', right: '\\]', display: true}
+                                {left: '$', right: '$', display: false}
                             ],
                             throwOnError: false,
-                            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+                            ignoredTags: [
+                                "script", "noscript", "style", "textarea",
+                                "pre", "code", "option", "svg", "button"
+                            ],
+                            ignoredClasses: ["mermaid", "q-tab__label", "q-btn"]
                         });
                     } catch (err) {
                         console.warn("KaTeX render notice:", err);
@@ -93,8 +113,8 @@ def _inject_katex_math_support() -> None:
 
 def build_nicegui_interface() -> None:
     """Khởi tạo toàn bộ giao diện 5 Tab bằng thư viện NiceGUI."""
-    # 1. Tích hợp KaTeX Math Engine
-    _inject_katex_math_support()
+    # 1. Tích hợp Phông chữ tiếng Việt chuẩn & KaTeX Math an toàn
+    _inject_katex_and_fonts()
 
     # 2. Định nghĩa Palette màu sắc
     ui.colors(
@@ -126,7 +146,6 @@ def build_nicegui_interface() -> None:
         tab3 = ui.tab("3. Kiểm Thử & Đối Chiếu (RFC 6229)", icon="verified")
         tab4 = ui.tab("4. Tấn Công Dòng Khóa & Đo Tốc Độ", icon="security")
         tab5 = ui.tab("5. Tìm Hiểu Hệ Mã (Tóm Tắt)", icon="menu_book")
-
 
     # 5. Khung chứa nội dung 5 Tab Panels
     with ui.tab_panels(tabs, value=tab1).classes("w-full max-w-7xl mx-auto p-4"):
