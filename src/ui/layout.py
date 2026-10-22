@@ -57,6 +57,38 @@ def _inject_katex_and_fonts() -> None:
                 font-weight: 600 !important;
                 letter-spacing: 0.01em;
             }
+
+            /* Tinh chỉnh Tabulator: hiện đại, đồng bộ Inter font và màu sắc */
+            .tabulator {
+                font-family: 'Inter', -apple-system, sans-serif !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px !important;
+            }
+            .tabulator .tabulator-header {
+                background-color: #f8fafc !important;
+                border-bottom: 2px solid #cbd5e1 !important;
+                color: #1e293b !important;
+                font-weight: 700 !important;
+            }
+            .tabulator-row {
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+            .tabulator-row:hover {
+                background-color: #f8fafc !important;
+            }
+            .tabulator-group {
+                background-color: #f1f5f9 !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                font-weight: 700 !important;
+                padding: 6px 12px !important;
+            }
+            .tabulator-header-filter input {
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 4px !important;
+                padding: 2px 6px !important;
+                font-size: 0.75rem !important;
+            }
         </style>
 
         <script>
@@ -125,6 +157,13 @@ def build_nicegui_interface() -> None:
     """Khởi tạo toàn bộ giao diện 5 Tab bằng thư viện NiceGUI."""
     # 1. Tích hợp Phông chữ tiếng Việt chuẩn & KaTeX Math an toàn
     _inject_katex_and_fonts()
+
+    # Kích hoạt theme Bootstrap5 cho Tabulator nếu thư viện được cài đặt
+    try:
+        from nicegui_tabulator import use_theme
+        use_theme("bootstrap5")
+    except Exception:
+        pass
 
     # 2. Định nghĩa Palette màu sắc
     ui.colors(

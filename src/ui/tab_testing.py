@@ -17,6 +17,13 @@ from src.core.models import TestCaseComparison
 from src.core.rc4 import rc4_crypt
 from src.core.tiny_rc4 import run_tiny_rc4
 
+try:
+    from nicegui_tabulator import tabulator
+    HAS_TABULATOR = True
+except ImportError:
+    tabulator = None
+    HAS_TABULATOR = False
+
 
 def reference_arc4_encrypt(key: bytes, data: bytes) -> Optional[bytes]:
     """
@@ -186,31 +193,96 @@ def build_tab_testing() -> None:
             results = run_all_verification_cases()
             passed_count = sum(1 for r in results if r.passed)
             with test_table_box:
-                ui.badge(
-                    f"Kết quả tổng hợp: {passed_count}/{len(results)} ca kiểm thử ĐẠT (100% PASS)",
-                    color="positive" if passed_count == len(results) else "negative",
-                ).classes("text-sm px-3 py-1 mb-2")
+                with ui.row().classes("w-full items-center justify-between mb-3 flex-wrap gap-2"):
+                    with ui.row().classes("items-center gap-2"):
+                        ui.badge(
+                            f"Kết quả tổng hợp: {passed_count}/{len(results)} ca kiểm thử ĐẠT (100% PASS)",
+                            color="positive" if passed_count == len(results) else "negative",
+                        ).classes("text-sm px-3 py-1")
+                        if HAS_TABULATOR:
+                            ui.badge("Interactive Tabulator Active", color="primary").classes("text-xs px-2 py-0.5")
 
-                cols = [
-                    {"name": "name", "label": "Ca kiểm thử", "field": "name", "align": "left"},
-                    {"name": "key", "label": "Khóa K", "field": "key", "align": "left"},
-                    {"name": "inp", "label": "Đầu vào P", "field": "inp", "align": "left"},
-                    {"name": "exp", "label": "Kết quả chuẩn (Expected)", "field": "exp", "align": "left"},
-                    {"name": "act", "label": "Kết quả tự cài đặt (Actual)", "field": "act", "align": "left"},
-                    {"name": "status", "label": "Trạng thái", "field": "status", "align": "center"},
-                ]
-                rows = [
-                    {
-                        "name": r.name,
-                        "key": r.key_desc,
-                        "inp": r.input_desc,
-                        "exp": r.expected_hex,
-                        "act": r.actual_hex,
-                        "status": "PASS (Khớp 100%)" if r.passed else "FAIL",
+                if HAS_TABULATOR:
+                    tabulator_rows = [
+                        {
+                            "id": idx + 1,
+                            "category": r.category,
+                            "name": r.name,
+                            "key": r.key_desc,
+                            "inp": r.input_desc,
+                            "exp": f"<code class='font-mono text-xs text-slate-800'>{r.expected_hex}</code>",
+                            "act": f"<code class='font-mono text-xs text-emerald-800 font-bold'>{r.actual_hex}</code>",
+                            "status": (
+                                "<span class='px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800'>✓ PASS</span>"
+                                if r.passed
+                                else "<span class='px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800'>✗ FAIL</span>"
+                            ),
+                            "raw_status": "PASS" if r.passed else "FAIL",
+                            "raw_exp": r.expected_hex,
+                            "raw_act": r.actual_hex,
+                        }
+                        for idx, r in enumerate(results)
+                    ]
+
+                    tab_cols = [
+                        {"title": "#", "field": "id", "width": 60, "hozAlign": "center"},
+                        {"title": "Ca kiểm thử", "field": "name", "headerFilter": "input", "minWidth": 260},
+                        {"title": "Khóa K", "field": "key", "minWidth": 160},
+                        {"title": "Đầu vào P", "field": "inp", "minWidth": 160},
+                        {"title": "Kết quả chuẩn (Expected)", "field": "exp", "formatter": "html", "minWidth": 220},
+                        {"title": "Kết quả tự cài đặt (Actual)", "field": "act", "formatter": "html", "minWidth": 220},
+                        {"title": "Trạng thái", "field": "status", "formatter": "html", "hozAlign": "center", "width": 120},
+                    ]
+
+                    tab_options = {
+                        "data": tabulator_rows,
+                        "layout": "fitColumns",
+                        "groupBy": "category",
+                        "movableColumns": True,
+                        "columns": tab_cols,
                     }
-                    for r in results
-                ]
-                ui.table(columns=cols, rows=rows, row_key="name").classes("w-full")
+
+                    tbl = tabulator(tab_options, row_key="id").classes("w-full shadow-sm rounded border border-slate-200")
+
+                    # Thanh công cụ xuất báo cáo và in ấn
+                    with ui.row().classes("w-full items-center gap-2 mt-3"):
+                        ui.label("Công cụ Tabulator:").classes("text-xs font-bold text-slate-600 mr-2")
+                        ui.button(
+                            "Xuất CSV",
+                            icon="download",
+                            on_click=lambda: tbl.run_table_method("download", "csv", "rc4_test_verification.csv"),
+                        ).props("size=sm outline color=primary")
+                        ui.button(
+                            "Xuất JSON",
+                            icon="data_object",
+                            on_click=lambda: tbl.run_table_method("download", "json", "rc4_test_verification.json"),
+                        ).props("size=sm outline color=secondary")
+                        ui.button(
+                            "In báo cáo",
+                            icon="print",
+                            on_click=lambda: tbl.print(),
+                        ).props("size=sm outline color=slate")
+                else:
+                    cols = [
+                        {"name": "name", "label": "Ca kiểm thử", "field": "name", "align": "left"},
+                        {"name": "key", "label": "Khóa K", "field": "key", "align": "left"},
+                        {"name": "inp", "label": "Đầu vào P", "field": "inp", "align": "left"},
+                        {"name": "exp", "label": "Kết quả chuẩn (Expected)", "field": "exp", "align": "left"},
+                        {"name": "act", "label": "Kết quả tự cài đặt (Actual)", "field": "act", "align": "left"},
+                        {"name": "status", "label": "Trạng thái", "field": "status", "align": "center"},
+                    ]
+                    rows = [
+                        {
+                            "name": r.name,
+                            "key": r.key_desc,
+                            "inp": r.input_desc,
+                            "exp": r.expected_hex,
+                            "act": r.actual_hex,
+                            "status": "PASS (Khớp 100%)" if r.passed else "FAIL",
+                        }
+                        for r in results
+                    ]
+                    ui.table(columns=cols, rows=rows, row_key="name").classes("w-full")
 
         ui.button("Chạy lại toàn bộ Suite Kiểm thử", icon="fact_check", on_click=refresh_test_suite).props(
             "color=positive"

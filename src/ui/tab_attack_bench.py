@@ -12,6 +12,13 @@ from nicegui import ui
 from src.core.attack_demo import simulate_keystream_reuse_attack
 from src.core.benchmark import run_rc4_benchmark
 
+try:
+    from nicegui_tabulator import tabulator
+    HAS_TABULATOR = True
+except ImportError:
+    tabulator = None
+    HAS_TABULATOR = False
+
 
 def build_tab_attack_bench() -> None:
     """Xây dựng giao diện Tab 4: Tấn công Keystream Reuse & Đo hiệu năng."""
@@ -116,13 +123,60 @@ $$C_1 \oplus C_2 = (P_1 \oplus S) \oplus (P_2 \oplus S) = P_1 \oplus P_2$$
                         }
                     ).classes("w-full h-56")
 
-                    cols = [
-                        {"name": "size_label", "label": "Kích thước", "field": "size_label", "align": "left"},
-                        {"name": "bytes", "label": "Số Bytes", "field": "bytes", "align": "right"},
-                        {"name": "elapsed_ms", "label": "Thời gian (ms)", "field": "elapsed_ms", "align": "right"},
-                        {"name": "throughput_mb_s", "label": "Tốc độ (MB/s)", "field": "throughput_mb_s", "align": "right"},
-                    ]
-                    ui.table(columns=cols, rows=rows, row_key="size_label").classes("w-full")
+                    if HAS_TABULATOR:
+                        max_speed = max([r["throughput_mb_s"] for r in rows], default=100.0)
+                        bench_tab_rows = [
+                            {
+                                "id": idx + 1,
+                                "size_label": r["size_label"],
+                                "bytes": f"{r['bytes']:,} B",
+                                "elapsed_ms": f"{r['elapsed_ms']:.2f} ms",
+                                "throughput_mb_s": r["throughput_mb_s"],
+                            }
+                            for idx, r in enumerate(rows)
+                        ]
+                        bench_tab_cols = [
+                            {"title": "#", "field": "id", "width": 50, "hozAlign": "center"},
+                            {"title": "Kích thước", "field": "size_label", "width": 110},
+                            {"title": "Số Bytes", "field": "bytes", "hozAlign": "right", "width": 120},
+                            {"title": "Thời gian (ms)", "field": "elapsed_ms", "hozAlign": "right", "width": 130},
+                            {
+                                "title": "Thông lượng (MB/s)",
+                                "field": "throughput_mb_s",
+                                "formatter": "progress",
+                                "formatterParams": {
+                                    "color": ["#3b82f6", "#10b981"],
+                                    "legend": True,
+                                    "legendColor": "#0f172a",
+                                    "legendAlign": "center",
+                                    "max": max(round(max_speed * 1.15, 1), 10.0),
+                                },
+                            },
+                        ]
+                        bench_tbl = tabulator(
+                            {
+                                "data": bench_tab_rows,
+                                "layout": "fitColumns",
+                                "columns": bench_tab_cols,
+                            },
+                            row_key="id",
+                        ).classes("w-full shadow-sm rounded border border-slate-200 mt-2")
+
+                        with ui.row().classes("w-full items-center justify-between mt-2"):
+                            ui.badge("Interactive Tabulator Engine", color="primary").classes("text-xs px-2 py-0.5")
+                            ui.button(
+                                "Xuất dữ liệu đo đạc (CSV)",
+                                icon="download",
+                                on_click=lambda: bench_tbl.run_table_method("download", "csv", "rc4_benchmark_measurements.csv"),
+                            ).props("size=sm outline color=primary")
+                    else:
+                        cols = [
+                            {"name": "size_label", "label": "Kích thước", "field": "size_label", "align": "left"},
+                            {"name": "bytes", "label": "Số Bytes", "field": "bytes", "align": "right"},
+                            {"name": "elapsed_ms", "label": "Thời gian (ms)", "field": "elapsed_ms", "align": "right"},
+                            {"name": "throughput_mb_s", "label": "Tốc độ (MB/s)", "field": "throughput_mb_s", "align": "right"},
+                        ]
+                        ui.table(columns=cols, rows=rows, row_key="size_label").classes("w-full")
 
             ui.button("Chạy Đo Hiệu Năng (1 KB → 1 MB)", icon="speed", on_click=run_bench_ui).props(
                 "color=primary"
