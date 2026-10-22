@@ -17,6 +17,7 @@ from src.ui.tab_full_rc4 import build_tab_full_rc4
 from src.ui.tab_testing import build_tab_testing
 from src.ui.tab_attack_bench import build_tab_attack_bench
 from src.ui.tab_theory import build_tab_theory
+from src.ui.pwa import inject_pwa_head_tags
 
 
 def _inject_katex_and_fonts() -> None:
@@ -154,6 +155,9 @@ def build_nicegui_interface() -> None:
     # 1. Tích hợp phông chữ & KaTeX
     _inject_katex_and_fonts()
 
+    # 2. Tích hợp PWA Head Tags (Manifest, Icons, Service Worker)
+    inject_pwa_head_tags()
+
     # 2. Component Defaults toàn cục
     ui.card.default_classes("bg-white border border-slate-200/90 rounded-2xl shadow-xs")
     ui.input.default_props("outlined dense")
@@ -216,7 +220,7 @@ def build_nicegui_interface() -> None:
                             "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
                             "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
                         ):
-                            ui.label("RC4 WORKBENCH").classes("text-xs font-black tracking-widest text-white leading-tight truncate")
+                            ui.label("RC4 LAB").classes("text-xs font-black tracking-widest text-white leading-tight truncate")
                             ui.label("NEU Security Lab 2026").classes("text-3xs text-slate-400 font-mono truncate")
 
                     ui.separator().classes("w-full bg-slate-800/80 mb-2")
@@ -226,7 +230,7 @@ def build_nicegui_interface() -> None:
                         {
                             "id": "tab1",
                             "title": "TinyRC4 (3-bit)",
-                            "subtitle": "Mô hình Slide 53–60",
+                            "subtitle": "Mô hình 3-bit Modulo 8",
                             "icon": "calculate",
                         },
                         {
@@ -283,9 +287,25 @@ def build_nicegui_interface() -> None:
 
                         nav_rows[item["id"]] = row_elem
 
-                # Khối Dưới: Thông tin NEU & Avatar (flex-nowrap, không bị co kéo)
-                with ui.column().classes("w-full px-0 gap-1"):
-                    ui.separator().classes("w-full bg-slate-800/80 my-1")
+                # Khối Dưới: Nút Cài Đặt PWA + Thông tin NEU & Avatar (flex-nowrap, không bị co kéo)
+                with ui.column().classes("w-full px-0 gap-1.5"):
+                    # Nút Cài đặt ứng dụng PWA (Tự động kích hoạt khi trình duyệt hỗ trợ)
+                    with ui.row().props('id="pwa-install-btn" onclick="triggerPwaInstall()"').classes(
+                        "w-full flex items-center flex-nowrap h-10 px-3 gap-3 overflow-hidden cursor-pointer "
+                        "text-emerald-400 hover:text-white hover:bg-emerald-950/60 transition-all rounded-lg select-none"
+                    ):
+                        with ui.row().classes(
+                            "shrink-0 w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center m-0 p-0 border border-emerald-500/30 shadow-xs"
+                        ):
+                            ui.icon("download_for_offline", size="sm")
+                        with ui.column().classes(
+                            "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
+                            "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
+                        ):
+                            ui.label("Cài đặt RC4 Lab").classes("text-xs font-bold leading-tight truncate text-emerald-300")
+                            ui.label("Desktop / Mobile App").classes("text-3xs text-emerald-500/80 font-mono truncate")
+
+                    ui.separator().classes("w-full bg-slate-800/80 my-0.5")
                     with ui.row().classes("w-full flex items-center flex-nowrap h-10 px-3 gap-3 overflow-hidden"):
                         with ui.avatar(size="sm", color="blue-800").classes(
                             "shrink-0 w-8 h-8 text-white font-bold text-xs cursor-pointer shadow-inner flex items-center justify-center"
@@ -352,7 +372,7 @@ def build_nicegui_interface() -> None:
 
                 # Widget 1: Bảng quy đổi 3-bit thu nhỏ
                 with ui.card().classes("w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl gap-1"):
-                    ui.label("Bảng chữ cái 3-bit (Slide 40):").classes("text-2xs font-bold text-slate-700 uppercase tracking-wider")
+                    ui.label("Bảng chữ cái 3-bit:").classes("text-2xs font-bold text-slate-700 uppercase tracking-wider")
                     with ui.grid(columns=4).classes("w-full gap-1 font-mono text-2xs mt-1"):
                         ui.label("A: 000 (0)").classes("bg-white p-1 rounded border text-center text-slate-700")
                         ui.label("B: 001 (1)").classes("bg-white p-1 rounded border text-center font-bold text-blue-700")
@@ -388,7 +408,7 @@ def build_nicegui_interface() -> None:
                             ui.label("Trạng Thái Kiểm Thử").classes("text-2xs font-bold text-emerald-900")
                         ui.badge("8/8 PASS", color="emerald-700").classes("text-3xs text-white px-1.5 py-0.5")
                     ui.label("• RFC 6229: 4 ca kiểm thử 40..256 bit đạt chuẩn 100%").classes("text-3xs text-emerald-800")
-                    ui.label("• NEU Slide 56: Khớp tuyệt đối P='BAG' -> C='EBA'").classes("text-3xs text-emerald-800")
+                    ui.label("• Ví dụ mẫu: Khớp tuyệt đối P='BAG' -> C='EBA'").classes("text-3xs text-emerald-800")
                     ui.label("• File nhị phân: Khôi phục ảnh PNG 100% toàn vẹn").classes("text-3xs text-emerald-800")
 
         # ---------------------------------------------------------------------

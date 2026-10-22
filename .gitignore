@@ -26,3 +26,4 @@ ENV/
 .DS_Store
 Thumbs.db
 *.rc4
+ban_giao_backend.md
