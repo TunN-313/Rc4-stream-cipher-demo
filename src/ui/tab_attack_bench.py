@@ -37,13 +37,19 @@ def build_tab_attack_bench() -> None:
                         ui.label("Keystream Reuse & Kỹ thuật Crib-dragging thám mã không cần khóa K").classes("text-xs text-slate-500")
                 ui.badge("Lỗ hổng WEP/WPA", color="negative").classes("text-xs")
 
-            ui.markdown(
-                r"""
-Khi hai bản rõ $P_1, P_2$ bị mã hóa bằng **cùng một khóa $K$**, kẻ tấn công tính:
-$$C_1 \oplus C_2 = (P_1 \oplus S) \oplus (P_2 \oplus S) = P_1 \oplus P_2$$
-*(Dòng khóa $S$ bị triệt tiêu hoàn toàn! Kỹ thuật Crib-dragging cho phép giải mã $P_2$ khi đoán được một phần từ $P_1$).*
-                """
-            ).classes("text-xs text-slate-700 bg-rose-50/60 border border-rose-200/70 p-3 rounded-lg")
+            with ui.column().classes("w-full bg-rose-50/70 border border-rose-200/80 p-3.5 rounded-xl gap-2"):
+                with ui.row().classes("w-full items-start gap-2"):
+                    ui.icon("warning_amber", size="xs").classes("text-rose-600 mt-0.5 shrink-0")
+                    ui.label(
+                        "Khi hai bản rõ P₁ và P₂ bị mã hóa bằng cùng một khóa bí mật K (Keystream Reuse):"
+                    ).classes("text-xs font-semibold text-rose-950 leading-relaxed")
+
+                with ui.row().classes("w-full justify-center py-1 px-3 bg-white/90 rounded-lg border border-rose-200 shadow-2xs"):
+                    ui.html(r"$$C_1 \oplus C_2 = (P_1 \oplus K) \oplus (P_2 \oplus K) = P_1 \oplus P_2$$").classes("text-sm text-rose-900 font-bold")
+
+                ui.label(
+                    "Dòng khóa K bị triệt tiêu hoàn toàn! Kỹ thuật thám mã Crib-dragging cho phép khôi phục bản rõ P₂ khi dự đoán được một đoạn từ khóa (Crib) trong P₁."
+                ).classes("text-2xs text-rose-800/90 italic leading-normal pl-6")
 
             atk_p1 = ui.input(
                 label="Bản rõ P1",

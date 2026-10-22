@@ -91,8 +91,8 @@ flowchart LR
                         ui.icon("school", size="xs")
                     with ui.column().classes("gap-0"):
                         ui.label("3. Ví Dụ Tính Tay Chi Tiết: Bản Rõ P = 'BAG', Khóa K = [2, 1, 3]").classes("text-base font-bold text-slate-800")
-                        ui.label("Bám sát Slide 56–60 bài giảng ATBMTT (Khoa CNTT - ĐH Kinh tế Quốc dân)").classes("text-xs text-slate-500")
-                ui.badge("Slide 56–60", color="warning").classes("text-xs")
+                        ui.label("Quy trình tính toán từng bước chi tiết (Khoa CNTT - ĐH Kinh tế Quốc dân)").classes("text-xs text-slate-500")
+                ui.badge("Tính tay chi tiết", color="warning").classes("text-xs")
 
             ui.markdown(
                 r"""

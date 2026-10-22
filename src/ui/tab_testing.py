@@ -67,7 +67,7 @@ def run_all_verification_cases() -> List[TestCaseComparison]:
     )
     cases.append(
         TestCaseComparison(
-            name="1. Ví dụ bài giảng TinyRC4 (Slide 56–60)",
+            name="1. Ví dụ mẫu TinyRC4 (P='BAG', K=[2,1,3])",
             category="TinyRC4 (3-bit)",
             key_desc="K = [2, 1, 3] (N=3)",
             input_desc="P = 'BAG' (001 000 110)",
@@ -207,7 +207,7 @@ def build_tab_testing() -> None:
                             ui.label("Tổng ca kiểm thử").classes("text-xs uppercase font-bold text-slate-500 tracking-wider")
                             ui.icon("rule", size="xs").classes("text-blue-600")
                         ui.label(f"{len(results)} Vectors").classes("text-2xl font-extrabold text-slate-900 font-mono")
-                        ui.label("Slide 56 + Custom + RFC 6229").classes("text-xs text-slate-500 mt-1")
+                        ui.label("TinyRC4 + Custom + RFC 6229").classes("text-xs text-slate-500 mt-1")
 
                     with ui.card().classes("flex-1 p-4 bg-emerald-50/40 border border-emerald-200/80"):
                         with ui.row().classes("items-center justify-between w-full mb-1"):

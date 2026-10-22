@@ -37,7 +37,7 @@ def build_tab_tiny_rc4() -> None:
         # Bảng quy đổi ký tự 3-bit chuẩn hóa dạng Interactive Keypad Chips
         with ui.column().classes("w-full mb-5 bg-slate-50/90 p-4 rounded-xl border border-slate-200/80"):
             with ui.row().classes("items-center justify-between w-full mb-2"):
-                ui.label("Bảng quy đổi ký tự sang số 3-bit (Slide 40 - Click chữ cái để nhập nhanh):").classes(
+                ui.label("Bảng quy đổi ký tự sang số 3-bit (Click chữ cái để nhập nhanh):").classes(
                     "text-xs font-bold text-slate-700 uppercase tracking-wider"
                 )
                 ui.label("8 ký tự A..H tương ứng 0..7").classes("text-2xs text-slate-400 font-mono")
@@ -87,7 +87,7 @@ def build_tab_tiny_rc4() -> None:
                 "bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all"
             )
             ui.button(
-                "Nạp ví dụ chuẩn Slide 56 (P='BAG', K=[2,1,3])",
+                "Nạp ví dụ mẫu P='BAG', K=[2,1,3]",
                 icon="school",
                 on_click=lambda: load_classroom_example(),
             ).props("outline color=primary").classes("px-4 py-2 rounded-xl font-semibold")
@@ -119,7 +119,8 @@ def build_tab_tiny_rc4() -> None:
                     "flex-1 min-w-[280px] p-5 bg-gradient-to-br from-blue-50/70 to-indigo-50/30 border border-blue-200/80 border-l-4 border-l-blue-600 rounded-2xl shadow-xs"
                 ):
                     with ui.row().classes("items-center justify-between w-full mb-1.5"):
-                        ui.label(f"ĐẦU VÀO ({mode_label})").classes(
+                        header_title = f"ĐẦU VÀO — {mode_label}" if mode_label else "ĐẦU VÀO"
+                        ui.label(header_title).classes(
                             "text-2xs font-extrabold text-blue-800 tracking-wider uppercase"
                         )
                         ui.icon("input", size="xs").classes("text-blue-600")
@@ -135,7 +136,7 @@ def build_tab_tiny_rc4() -> None:
                     "flex-1 min-w-[280px] p-5 bg-gradient-to-br from-amber-50/70 to-yellow-50/30 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-2xl shadow-xs"
                 ):
                     with ui.row().classes("items-center justify-between w-full mb-1.5"):
-                        ui.label("DÒNG KHÓA PRGA (KEYSTREAM K)").classes(
+                        ui.label("DÒNG KHÓA PRGA").classes(
                             "text-2xs font-extrabold text-amber-800 tracking-wider uppercase"
                         )
                         ui.icon("vpn_key", size="xs").classes("text-amber-600")
@@ -151,7 +152,7 @@ def build_tab_tiny_rc4() -> None:
                     "flex-1 min-w-[280px] p-5 bg-gradient-to-br from-emerald-50/70 to-teal-50/30 border border-emerald-200/80 border-l-4 border-l-emerald-600 rounded-2xl shadow-xs"
                 ):
                     with ui.row().classes("items-center justify-between w-full mb-1.5"):
-                        ui.label("KẾT QUẢ ĐẦU RA (SAU XOR)").classes(
+                        ui.label("KẾT QUẢ ĐẦU RA").classes(
                             "text-2xs font-extrabold text-emerald-800 tracking-wider uppercase"
                         )
                         ui.icon("output", size="xs").classes("text-emerald-600")
@@ -220,7 +221,7 @@ def build_tab_tiny_rc4() -> None:
                             ui.label("Giai Đoạn 2: Sinh Dòng Khóa (PRGA) & Mã Hóa/Giải Mã XOR").classes(
                                 "text-base font-bold text-slate-900"
                             )
-                            ui.label("Công thức: i=(i+1)%8, j=(j+S[i])%8, swap, t=(S[i]+S[j])%8, k=S[t], c = p ⊕ k").classes(
+                            ui.label("Công thức: i = (i + 1) mod 8, j = (j + S[i]) mod 8, swap, t = (S[i] + S[j]) mod 8, k = S[t], c = p ⊕ k").classes(
                                 "text-xs text-slate-500"
                             )
 
@@ -250,7 +251,7 @@ def build_tab_tiny_rc4() -> None:
                     "w-full border border-slate-200/80 rounded-xl overflow-hidden font-mono text-xs"
                 )
 
-    def handle_tiny_run(mode_label: str = "Mã hóa / Giải mã") -> None:
+    def handle_tiny_run(mode_label: str = "") -> None:
         try:
             res = run_tiny_rc4(tiny_in.value, tiny_key.value)
             render_tiny_result(res, mode_label)
@@ -260,13 +261,13 @@ def build_tab_tiny_rc4() -> None:
     def load_classroom_example() -> None:
         tiny_in.value = "BAG"
         tiny_key.value = "2, 1, 3"
-        handle_tiny_run("Ví dụ chuẩn Slide 56 (BAG -> EBA)")
+        handle_tiny_run("")
 
     def swap_to_decrypt() -> None:
         try:
             res = run_tiny_rc4(tiny_in.value, tiny_key.value)
             tiny_in.value = res.output_text
-            handle_tiny_run("Giải mã ngược lại bản rõ")
+            handle_tiny_run("Giải mã ngược lại")
         except Exception as exc:
             ui.notify(str(exc), type="negative")
 

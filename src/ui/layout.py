@@ -230,7 +230,7 @@ def build_nicegui_interface() -> None:
                         {
                             "id": "tab1",
                             "title": "TinyRC4 (3-bit)",
-                            "subtitle": "Mô hình Slide 53–60",
+                            "subtitle": "Mô hình 3-bit Modulo 8",
                             "icon": "calculate",
                         },
                         {
@@ -372,7 +372,7 @@ def build_nicegui_interface() -> None:
 
                 # Widget 1: Bảng quy đổi 3-bit thu nhỏ
                 with ui.card().classes("w-full p-3 bg-slate-50 border border-slate-200/80 rounded-xl gap-1"):
-                    ui.label("Bảng chữ cái 3-bit (Slide 40):").classes("text-2xs font-bold text-slate-700 uppercase tracking-wider")
+                    ui.label("Bảng chữ cái 3-bit:").classes("text-2xs font-bold text-slate-700 uppercase tracking-wider")
                     with ui.grid(columns=4).classes("w-full gap-1 font-mono text-2xs mt-1"):
                         ui.label("A: 000 (0)").classes("bg-white p-1 rounded border text-center text-slate-700")
                         ui.label("B: 001 (1)").classes("bg-white p-1 rounded border text-center font-bold text-blue-700")
@@ -408,7 +408,7 @@ def build_nicegui_interface() -> None:
                             ui.label("Trạng Thái Kiểm Thử").classes("text-2xs font-bold text-emerald-900")
                         ui.badge("8/8 PASS", color="emerald-700").classes("text-3xs text-white px-1.5 py-0.5")
                     ui.label("• RFC 6229: 4 ca kiểm thử 40..256 bit đạt chuẩn 100%").classes("text-3xs text-emerald-800")
-                    ui.label("• NEU Slide 56: Khớp tuyệt đối P='BAG' -> C='EBA'").classes("text-3xs text-emerald-800")
+                    ui.label("• Ví dụ mẫu: Khớp tuyệt đối P='BAG' -> C='EBA'").classes("text-3xs text-emerald-800")
                     ui.label("• File nhị phân: Khôi phục ảnh PNG 100% toàn vẹn").classes("text-3xs text-emerald-800")
 
         # ---------------------------------------------------------------------
