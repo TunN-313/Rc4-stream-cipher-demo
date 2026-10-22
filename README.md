@@ -1,10 +1,11 @@
 # Hệ Mã Dòng RC4 & TinyRC4 — Ứng Dụng Minh Họa NiceGUI
 
-Ứng dụng trực quan hóa và thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng bằng **Python** và thư viện **NiceGUI**.
+Ứng dụng trực quan hóa và thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng trên nền tảng **Python thuần** và giao diện hiện đại **NiceGUI (SaaS Cryptographic Workbench)**.
 
 > **Học phần**: An toàn và Bảo mật Thông tin (Chương 2: Mã hóa khóa đối xứng)  
 > **Đơn vị**: Khoa Công nghệ Thông tin — Đại học Kinh tế Quốc dân (NEU)  
-> **Repository**: [https://github.com/TunN-313/Rc4-stream-cipher-demo](https://github.com/TunN-313/Rc4-stream-cipher-demo)
+> **Repository**: [https://github.com/TunN-313/Rc4-stream-cipher-demo](https://github.com/TunN-313/Rc4-stream-cipher-demo)  
+> **Phiên bản**: v2.0 (Kiến trúc Cryptographic Workbench & Tabulator Test Suite)
 
 ---
 
@@ -12,98 +13,162 @@
 
 | Thành viên | Vai trò | Nhánh Git | Nội dung phụ trách chính |
 | :--- | :--- | :--- | :--- |
-| **Thành viên 1 (Frontend)** | Giao diện & Trực quan hóa | `feat/ui-nicegui` | Toàn bộ giao diện 5 Tab bằng NiceGUI (`src/ui/*`), bảng biểu KSA/PRGA, biểu đồ echart, tải file và kiểm thử UI |
-| **Thành viên 2 (Backend)** | Thuật toán lõi & Kiểm thử | `feat/core-backend` | Cài đặt KSA, PRGA, XOR thuần Python (`src/core/*`), logic tấn công dùng lại khóa, benchmark và unit test (`tests/*`) |
+| **Thành viên 1 (Frontend)** | Giao diện & Trực quan hóa | `feat/ui-nicegui` | Toàn bộ giao diện Workbench dạng SaaS bằng NiceGUI (`src/ui/*`), thanh điều hướng Side Menu Hover-to-Expand, bảng tương tác Tabulator, biểu đồ ECharts, tải file/ảnh và kiểm thử UI |
+| **Thành viên 2 (Backend)** | Thuật toán lõi & Kiểm thử | `feat/core-backend` | Cài đặt KSA, PRGA, XOR thuần Python (`src/core/*`), logic tấn công dùng lại khóa (Two-Time Pad & Crib-dragging), benchmark tốc độ và unit tests (`tests/*`) |
 
 ---
 
-## 2. Tính Năng Chính Của Ứng Dụng (5 Tab Giao Diện)
+## 2. Điểm Nhấn Kiến Trúc & Thiết Kế Giao Diện
 
-1. **Tab 1: Thực Thi TinyRC4 (3-bit Step-by-Step)**:
-   - Tái hiện ví dụ bài giảng trên lớp (Slide 56–60): $P = \text{"BAG"}, K = [2, 1, 3] \to C = \text{"EBA"}$.
-   - Hiển thị bảng chi tiết 8 vòng hoán vị KSA ($i = 0..7$, chỉ số $j$, phép hoán vị $S[i] \leftrightarrow S[j]$).
-   - Hiển thị bảng sinh số PRGA và phép XOR nhị phân từng cụm 3-bit.
-   - Nút nạp ví dụ 1 chạm và nút đảo chiều để giải mã đối xứng.
-2. **Tab 2: RC4 Chuẩn (256-byte, Văn Bản UTF-8 & File/Ảnh Thật)**:
-   - Mã hóa văn bản UTF-8 ra định dạng Hex và Base64; giải mã khôi phục bản rõ.
-   - Trực quan hóa ma trận trạng thái hoán vị $S$ (256 byte) dưới dạng lưới 16x16.
-   - Tải lên tệp văn bản (`.txt`) hoặc ảnh (`.png`, `.jpg`), mã hóa xuất file `.rc4`, giải mã khôi phục và hiển thị ảnh so sánh trực tiếp.
-3. **Tab 3: Bộ Kiểm Thử Tự Động & Đối Chiếu Chuẩn**:
-   - Chạy tự động 8 ca kiểm thử: (1) Ví dụ TinyRC4 trên lớp; (2) 3 ca tự thiết kế (cổ điển, tiếng Việt có dấu); (3) 4 ca kiểm thử vector chuẩn IETF RFC 6229 (40-bit, 64-bit, 128-bit, 256-bit).
-   - Đối chiếu trực tiếp với thư viện `Crypto.Cipher.ARC4` của PyCryptodome.
-4. **Tab 4: Đo Hiệu Năng & Tấn Công Dòng Khóa (Điểm Cộng)**:
-   - Mô phỏng tấn công dùng lại dòng khóa (Keystream Reuse / Two-Time Pad Attack): $C_1 \oplus C_2 = P_1 \oplus P_2$.
-   - Kỹ thuật thám mã Crib-dragging: Đoán trước 1 cụm từ của $P_1$ để giải mã một phần $P_2$.
-   - Đo thông lượng mã hóa (MB/s) theo kích thước từ 1 KB đến 1 MB và vẽ biểu đồ đường bằng `ui.echart`.
-5. **Tab 5: Tổng Quan Lý Thuyết & So Sánh Hệ Mã A5/1**:
-   - Bối cảnh ra đời (Ron Rivest 1987) và lý do bị cấm theo chuẩn IETF RFC 7465.
-   - Sơ đồ khối KSA & PRGA tự vẽ bằng mã Mermaid.
-   - Bảng phân tích chi tiết so sánh giữa RC4 và A5/1 (GSM).
+Giao diện ứng dụng được thiết kế theo phong cách **Cryptographic Workbench** chuyên nghiệp:
+- **Hover-to-Expand Side Navigation**: Thanh điều hướng bên trái ở trạng thái thu gọn tinh tế (`w-16`), tự động trượt mở rộng mượt mà (`w-64`) khi rê chuột để hiển thị nhãn tiếng Việt và huy hiệu số thứ tự phân trang trực quan, không chiếm dụng không gian làm việc.
+- **Tối đa hóa không gian thao tác**: Ẩn thanh tab bar ngang cồng kềnh, đẩy toàn bộ nội dung chính lên sát mép trên màn hình.
+- **Right Cheatsheet Drawer**: Cột tra cứu bên phải tích hợp công thức toán học KaTeX, tóm tắt thuật toán KSA/PRGA, ma trận mini S-Box và bảng ánh xạ 3-bit, có thể đóng/mở linh hoạt.
+- **Bottom Status Bar**: Thanh trạng thái thời gian thực hiển thị thông số kết nối backend, module đang kích hoạt và trạng thái hệ thống.
 
 ---
 
-## 3. Cài Đặt & Khởi Chạy
+## 3. Các Tính Năng Chính Của Ứng Dụng (5 Phân Hệ / Tabs)
+
+### 📌 Tab 1: Trực Quan Hóa TinyRC4 (3-bit Step-by-Step)
+- **Chuẩn hóa học thuật**: Mô phỏng hệ mã dòng 3-bit thu nhỏ trên không gian 8 phần tử ($N=8$, modulo 8) theo đúng bài giảng Khoa CNTT - ĐH Kinh tế Quốc dân (Slide 56–60).
+- **Bộ chuyển đổi bảng chữ cái**: Ánh xạ ký tự chữ cái chuẩn `A`..`H` sang chuỗi 3-bit tương ứng `000`..`111` ($0..7$).
+- **Chi tiết từng bước**:
+  - Bảng 8 vòng hoán vị KSA ($i = 0..7$, chỉ số $j$, phép hoán vị $S[i] \leftrightarrow S[j]$).
+  - Bảng sinh số PRGA và phép XOR nhị phân từng cụm 3-bit giữa bản rõ và dòng khóa.
+- **Nút nạp ví dụ 1 chạm**: Tự động điền vector chuẩn trên lớp:
+  - Bản rõ $P = \text{"BAG"}$ (`001 000 110`)
+  - Khóa $K = [2, 1, 3]$
+  - Trạng thái mảng $S$ sau 8 vòng KSA: `[6, 0, 7, 1, 2, 3, 5, 4]`
+  - Dòng khóa PRGA: $k = [5, 1, 6]$ (`101 001 110`)
+  - Bản mã sinh ra: $C = \text{"EBA"}$ (`100 001 000`)
+- **Giải mã đối xứng 1 chạm**: Nút đảo chiều tự động chuyển bản mã $C = \text{"EBA"}$ thành bản rõ giải mã $P = \text{"BAG"}$ với cùng khóa $K$.
+
+### 📌 Tab 2: RC4 Chuẩn (8-bit, Văn Bản UTF-8 & File/Ảnh Thật)
+- **Thuần Python 100%**: Thuật toán KSA và PRGA modulo 256 xử lý mảng `bytes` nguyên bản, không sử dụng bất kỳ thư viện mật mã bên ngoài nào.
+- **Mã hóa văn bản đa ngữ**: Hỗ trợ đầy đủ tiếng Việt UTF-8 và ký tự đặc biệt, xuất bản mã dưới dạng Hex và Base64.
+- **Mã hóa tệp tin nhị phân & Tệp ảnh**:
+  - Hỗ trợ tải lên tài liệu (`.txt`, `.pdf`) và tệp ảnh (`.png`, `.jpg`).
+  - Xuất tệp mã hóa định dạng `.rc4`.
+  - Giải mã khôi phục nguyên vẹn 100% từng byte dữ liệu gốc, hiển thị so sánh trực quan ảnh trước và sau khi giải mã.
+- **Trực quan hóa S-Box 16x16**: Hiển thị bảng ma trận 256 phần tử của hoán vị $S$ trước và sau giai đoạn KSA/PRGA.
+
+### 📌 Tab 3: Bộ Kiểm Thử Tự Động & Đối Chiếu Tiêu Chuẩn Quốc Tế
+- **Tích hợp Tabulator hiện đại**: Bảng kiểm thử tương tác với tính năng tìm kiếm, phân trang và huy hiệu trạng thái `PASS` sinh động.
+- **Tự động đối chiếu 8/8 Test Cases**:
+  1. *Test Case 1*: Ví dụ trên lớp NEU Slide 56–60 ($P=\text{"BAG"}, K=[2,1,3] \to C=\text{"EBA"}$).
+  2. *Test Case 2*: Vector cổ điển kinh điển (`Key = b"Key"`, `Plaintext = b"Plaintext"` $\to$ `BBF316E8D940AF0AD3`).
+  3. *Test Case 3*: Vector Wikipedia (`Key = b"Wiki"`, `Plaintext = b"pedia"` $\to$ `1021BF0420`).
+  4. *Test Case 4*: Văn bản tiếng Việt có dấu Unicode UTF-8 đối chiếu tính toàn vẹn.
+  5. *Test Case 5–8*: Bộ 4 vector chuẩn quốc tế **IETF RFC 6229** tại vị trí offset 0 (40-bit, 64-bit, 128-bit, 256-bit).
+- **Đối chiếu thư viện chuẩn**: So sánh song song kết quả của thuật toán tự xây dựng với `Crypto.Cipher.ARC4` (từ PyCryptodome) đảm bảo độ chính xác tuyệt đối 100%.
+
+### 📌 Tab 4: Phân Tích Lỗ Hổng Dòng Khóa & Đo Tốc Độ Thực Nghiệm
+- **Tấn công tái sử dụng dòng khóa (Two-Time Pad Attack)**:
+  - Minh họa toán học: $C_1 \oplus C_2 = (P_1 \oplus K) \oplus (P_2 \oplus K) = P_1 \oplus P_2$.
+  - Trực quan hóa việc loại bỏ hoàn toàn khóa bí mật khi kẻ tấn công bắt được hai bản mã dùng chung khóa.
+- **Kỹ thuật thám mã Crib-dragging**:
+  - Kéo trượt từ đoán trước (Crib) qua chuỗi $C_1 \oplus C_2$ để khôi phục từng phần bản rõ còn lại.
+- **Đo hiệu năng thực tế (Benchmark)**:
+  - Kiểm thử tốc độ mã hóa qua nhiều kích thước dữ liệu (1 KB, 10 KB, 100 KB, 1 MB).
+  - Vẽ biểu đồ thông lượng (MB/s) trực quan tương tác bằng `ui.echart`.
+
+### 📌 Tab 5: Tổng Quan Lý Thuyết, Sơ Đồ Khối & So Sánh A5/1
+- **Lịch sử & Bối cảnh**: Nguồn gốc ra đời của RC4 (Ron Rivest, RSA Security 1987) và nguyên nhân bị cấm sử dụng trong TLS theo **IETF RFC 7465**.
+- **Sơ đồ khối thuật toán**: Trực quan hóa quy trình KSA và PRGA bằng sơ đồ tương tác mã nguồn Mermaid.
+- **Phân tích lỗ hổng sinh số ngẫu nhiên**: Điểm yếu thiên vị byte đầu tiên (Biased keystream) và đòn tấn công FMS (Fluhrer, Mantin, Shamir).
+- **Bảng so sánh chuyên sâu RC4 vs A5/1 (GSM)**:
+  - So sánh cấu trúc: Mảng hoán vị (S-Box) vs Thanh ghi dịch phản hồi tuyến tính (LFSR).
+  - So sánh cơ chế điều khiển xung nhịp (Majority voting rule), kích thước trạng thái và ứng dụng thực tiễn.
+
+---
+
+## 4. Cài Đặt & Khởi Chạy Nhanh
 
 ### Yêu cầu môi trường
-- Python 3.9 trở lên
-- Trình duyệt web hiện đại (Chrome, Edge, Firefox)
+- **Python**: 3.9 trở lên
+- **Trình duyệt**: Google Chrome, Microsoft Edge, Firefox, hoặc Safari
 
-### Cài đặt thư viện phụ thuộc
+### 1. Cài đặt các thư viện phụ thuộc
 ```bash
 pip install -r requirements.txt
 ```
 
-### Khởi chạy giao diện ứng dụng
+*Nội dung các gói phụ thuộc chính:*
+- `nicegui>=2.0.0`: Nền tảng xây dựng giao diện web tương tác bằng Python.
+- `nicegui-tabulator>=0.3.1`: Hiển thị bảng kiểm thử tương tác cao cấp.
+- `pycryptodome>=3.20.0`: Thư viện mật mã chuẩn dùng để đối chứng kiểm thử.
+- `pillow>=10.0.0`: Xử lý tệp hình ảnh nhị phân.
+- `pytest>=8.0.0`: Hỗ trợ chạy kịch bản unit test.
+
+### 2. Khởi chạy ứng dụng
 ```bash
 python main.py
 ```
-Sau khi khởi chạy thành công, truy cập trình duyệt tại địa chỉ: **[http://localhost:8080](http://localhost:8080)**
+Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
+👉 **[http://localhost:8080](http://localhost:8080)**
 
 ---
 
-## 4. Chạy Bộ Kiểm Thử Tự Động (Unit Test)
+## 5. Chạy Kiểm Thử Tự Động (Unit Tests)
 
-Chạy kiểm thử bằng `pytest`:
-```bash
-pytest tests/ -v
-```
-
-Hoặc chạy bằng `unittest` có sẵn trong Python:
+Chạy kiểm thử bằng lệnh `unittest` có sẵn trong Python:
 ```bash
 python -m unittest tests/test_rc4_core.py -v
 ```
 
+Hoặc chạy bằng `pytest`:
+```bash
+pytest tests/ -v
+```
+
+Kết quả kiểm thử tiêu chuẩn:
+```text
+test_all_verification_vectors (tests.test_rc4_core.TestRC4Core) ... ok
+test_binary_image_encryption_roundtrip (tests.test_rc4_core.TestRC4Core) ... ok
+test_classroom_tiny_rc4_slide_56_to_60 (tests.test_rc4_core.TestRC4Core) ... ok
+----------------------------------------------------------------------
+Ran 3 tests in 0.060s
+OK
+```
+
 ---
 
-## 5. Cấu Trúc Thư Mục Dự Án
+## 6. Cấu Trúc Thư Mục Dự Án
 
 ```text
 .
-├── .gitignore                    # Bỏ qua cache và môi trường ảo
-├── GEMINI.md                     # Quy tắc dự án cho Google Antigravity
-├── README.md                     # Hướng dẫn và tài liệu dự án
+├── .gitignore                    # Bỏ qua cache, venv và tệp tạm
+├── GEMINI.md                     # Quy chuẩn học thuật và phân tách kiến trúc
+├── README.md                     # Tài liệu hướng dẫn toàn diện dự án
 ├── requirements.txt              # Danh sách thư viện phụ thuộc
-├── main.py                       # File chạy chính ứng dụng NiceGUI
-├── sample_data/                  # Tệp văn bản và ảnh mẫu
-│   ├── sample_logo.png
-│   └── sample_text.txt
+├── main.py                       # Điểm khởi chạy chính ứng dụng NiceGUI (Port 8080)
+├── sample_data/                  # Dữ liệu thử nghiệm mẫu
+│   ├── sample_logo.png           # Tệp ảnh mẫu để kiểm thử mã hóa nhị phân
+│   └── sample_text.txt           # Tệp văn bản mẫu UTF-8
 ├── src/
 │   ├── __init__.py
-│   ├── core/                     # [BACKEND] - Thuật toán thuần Python
+│   ├── core/                     # [BACKEND] - Thuật toán thuần Python (Không phụ thuộc UI)
 │   │   ├── __init__.py
-│   │   ├── models.py             # Hợp đồng dữ liệu chung
-│   │   ├── tiny_rc4.py           # Thuật toán TinyRC4 (3-bit)
-│   │   ├── rc4.py                # Thuật toán RC4 chuẩn (256-byte)
-│   │   ├── attack_demo.py        # Logic tấn công Two-Time Pad
-│   │   └── benchmark.py          # Đo tốc độ mã hóa
-│   └── ui/                       # [FRONTEND] - Giao diện NiceGUI
+│   │   ├── models.py             # Hợp đồng dữ liệu chung (Dataclasses)
+│   │   ├── tiny_rc4.py           # Thuật toán TinyRC4 (3-bit, modulo 8)
+│   │   ├── rc4.py                # Thuật toán RC4 chuẩn (8-bit, 256 bytes)
+│   │   ├── attack_demo.py        # Logic tấn công Two-Time Pad & Crib-dragging
+│   │   └── benchmark.py          # Đo tốc độ mã hóa qua các kích thước tệp
+│   └── ui/                       # [FRONTEND] - Giao diện SaaS Cryptographic Workbench
 │       ├── __init__.py
-│       ├── layout.py             # Header & Khung điều hướng 5 Tab
-│       ├── tab_tiny_rc4.py       # Tab 1: Trực quan hóa TinyRC4
-│       ├── tab_full_rc4.py       # Tab 2: RC4 256-byte & File/Ảnh
-│       ├── tab_testing.py        # Tab 3: Bảng kiểm thử & RFC 6229
-│       ├── tab_attack_bench.py   # Tab 4: Tấn công & Biểu đồ tốc độ
-│       └── tab_theory.py         # Tab 5: Lý thuyết & Sơ đồ Mermaid
+│       ├── layout.py             # Khung Workbench, Sidebar Hover-to-Expand, Status Bar
+│       ├── tab_tiny_rc4.py       # Phân hệ 1: Trực quan hóa TinyRC4 từng bước
+│       ├── tab_full_rc4.py       # Phân hệ 2: RC4 256-byte, Văn bản UTF-8 & File/Ảnh
+│       ├── tab_testing.py        # Phân hệ 3: Bảng Tabulator kiểm thử 8/8 & RFC 6229
+│       ├── tab_attack_bench.py   # Phân hệ 4: Mô phỏng Two-Time Pad & Biểu đồ ECharts
+│       └── tab_theory.py         # Phân hệ 5: Lý thuyết, sơ đồ Mermaid & So sánh A5/1
 └── tests/
-    └── test_rc4_core.py          # Bộ kiểm thử tự động
+    └── test_rc4_core.py          # Bộ kiểm thử tự động xác thực chuẩn xác 100%
 ```
+
+---
+
+## 7. Ràng Buộc Học Thuật & Cam Kết Mã Nguồn
+- **Không sử dụng thư viện mật mã trong thuật toán lõi**: Cả hai tệp `src/core/tiny_rc4.py` và `src/core/rc4.py` đều được lập trình bằng toán tử cơ bản thuần Python (`%`, `^`, danh sách hoán vị).
+- **Tính đối chứng khách quan**: Thư viện `Crypto.Cipher.ARC4` chỉ được dùng làm chuẩn đối chiếu trong `tests/` và Tab 3 nhằm khẳng định tính chính xác của thuật toán tự xây dựng.
