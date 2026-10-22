@@ -108,6 +108,14 @@ python main.py
 Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
 👉 **[http://localhost:8080](http://localhost:8080)**
 
+### 3. Tải & Cài Đặt Ứng Dụng (PWA Desktop / Mobile)
+Ứng dụng hỗ trợ chuẩn **Progressive Web App (PWA)**, cho phép cài đặt trực tiếp thành phần mềm máy tính hoặc ứng dụng điện thoại độc lập:
+- **Trên Máy Tính (Google Chrome, Microsoft Edge, Brave)**:
+  - Khi mở giao diện, rê chuột vào chân thanh Side Menu bên trái và click vào nút **"Cài đặt RC4 Lab"** (hoặc biểu tượng máy tính cài đặt trên thanh địa chỉ URL).
+  - Ứng dụng sẽ tự động tạo icon riêng trên Desktop và Start Menu/Taskbar, mở trong cửa sổ độc lập (**Standalone Window**) không có thanh URL trình duyệt.
+- **Trên Điện Thoại (Android / iOS)**:
+  - Mở trang web trên Chrome/Safari $\to$ Nhấn menu tùy chọn $\to$ Chọn **"Thêm vào màn hình chính" (Add to Home screen / Install app)**.
+
 ---
 
 ## 5. Chạy Kiểm Thử Tự Động (Unit Tests)
@@ -143,6 +151,13 @@ OK
 ├── README.md                     # Tài liệu hướng dẫn toàn diện dự án
 ├── requirements.txt              # Danh sách thư viện phụ thuộc
 ├── main.py                       # Điểm khởi chạy chính ứng dụng NiceGUI (Port 8080)
+├── static/                       # Tài nguyên PWA tĩnh
+│   └── pwa/                      # Web App Manifest, Service Worker & Icons
+│       ├── manifest.webmanifest
+│       ├── sw.js
+│       ├── icon-192.png
+│       ├── icon-512.png
+│       └── favicon.ico
 ├── sample_data/                  # Dữ liệu thử nghiệm mẫu
 │   ├── sample_logo.png           # Tệp ảnh mẫu để kiểm thử mã hóa nhị phân
 │   └── sample_text.txt           # Tệp văn bản mẫu UTF-8
@@ -158,6 +173,7 @@ OK
 │   └── ui/                       # [FRONTEND] - Giao diện SaaS Cryptographic Workbench
 │       ├── __init__.py
 │       ├── layout.py             # Khung Workbench, Sidebar Hover-to-Expand, Status Bar
+│       ├── pwa.py                # Quản lý Web App Manifest, Service Worker & Install PWA
 │       ├── tab_tiny_rc4.py       # Phân hệ 1: Trực quan hóa TinyRC4 từng bước
 │       ├── tab_full_rc4.py       # Phân hệ 2: RC4 256-byte, Văn bản UTF-8 & File/Ảnh
 │       ├── tab_testing.py        # Phân hệ 3: Bảng Tabulator kiểm thử 8/8 & RFC 6229
