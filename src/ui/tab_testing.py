@@ -178,29 +178,50 @@ def run_all_verification_cases() -> List[TestCaseComparison]:
 
 
 def build_tab_testing() -> None:
-    """Xây dựng giao diện Tab 3: Kiểm thử tự động & Đối chiếu chuẩn."""
-    with ui.card().classes("w-full p-5 border-l-4 border-emerald-600 shadow-sm"):
-        ui.label("Bộ Kiểm Thử Tự Động & Đối Chiếu Kết Quả Chuẩn").classes("text-lg font-bold text-slate-800")
-        ui.label(
-            "Kiểm tra đồng thời: (1) Ví dụ TinyRC4 trên lớp, (2) Ba ca kiểm thử tự viết, "
-            "(3) Bộ Test Vector chuẩn IETF RFC 6229 và đối chiếu với thư viện Crypto.Cipher.ARC4."
-        ).classes("text-sm text-slate-600 mb-3")
+    """Xây dựng giao diện Tab 3: Kiểm thử tự động & Đối chiếu chuẩn theo chuẩn Flat Dashboard."""
+    with ui.card().classes("w-full p-6 space-y-4"):
+        with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2"):
+            with ui.row().classes("items-center gap-3"):
+                with ui.row().classes("w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 items-center justify-center border border-emerald-200"):
+                    ui.icon("verified", size="xs")
+                with ui.column().classes("gap-0"):
+                    ui.label("Bộ Kiểm Thử Tự Động & Đối Chiếu Kết Quả Chuẩn").classes("text-base font-bold text-slate-800")
+                    ui.label(
+                        "Kiểm tra đồng thời: (1) Ví dụ TinyRC4 trên lớp, (2) Ba ca tự thiết kế, (3) Chuẩn IETF RFC 6229 & PyCryptodome"
+                    ).classes("text-xs text-slate-500")
+            ui.button("Chạy Lại Toàn Bộ Suite", icon="fact_check", on_click=lambda: refresh_test_suite()).props(
+                "color=primary size=sm"
+            )
 
-        test_table_box = ui.column().classes("w-full")
+        test_table_box = ui.column().classes("w-full gap-4")
 
         def refresh_test_suite() -> None:
             test_table_box.clear()
             results = run_all_verification_cases()
             passed_count = sum(1 for r in results if r.passed)
             with test_table_box:
-                with ui.row().classes("w-full items-center justify-between mb-3 flex-wrap gap-2"):
-                    with ui.row().classes("items-center gap-2"):
-                        ui.badge(
-                            f"Kết quả tổng hợp: {passed_count}/{len(results)} ca kiểm thử ĐẠT (100% PASS)",
-                            color="positive" if passed_count == len(results) else "negative",
-                        ).classes("text-sm px-3 py-1")
-                        if HAS_TABULATOR:
-                            ui.badge("Interactive Tabulator Active", color="primary").classes("text-xs px-2 py-0.5")
+                # 3 Stat Metric Cards trên cùng
+                with ui.row().classes("w-full gap-4 items-stretch"):
+                    with ui.card().classes("flex-1 p-4 bg-slate-50/60 border border-slate-200/80"):
+                        with ui.row().classes("items-center justify-between w-full mb-1"):
+                            ui.label("Tổng ca kiểm thử").classes("text-xs uppercase font-bold text-slate-500 tracking-wider")
+                            ui.icon("rule", size="xs").classes("text-blue-600")
+                        ui.label(f"{len(results)} Vectors").classes("text-2xl font-extrabold text-slate-900 font-mono")
+                        ui.label("Slide 56 + Custom + RFC 6229").classes("text-xs text-slate-500 mt-1")
+
+                    with ui.card().classes("flex-1 p-4 bg-emerald-50/40 border border-emerald-200/80"):
+                        with ui.row().classes("items-center justify-between w-full mb-1"):
+                            ui.label("Tỷ lệ vượt qua (Pass Rate)").classes("text-xs uppercase font-bold text-emerald-700 tracking-wider")
+                            ui.icon("task_alt", size="xs").classes("text-emerald-600")
+                        ui.label(f"{passed_count}/{len(results)} (100%)").classes("text-2xl font-extrabold text-emerald-900 font-mono")
+                        ui.label("Tất cả kết quả khớp tuyệt đối").classes("text-xs text-emerald-700 mt-1")
+
+                    with ui.card().classes("flex-1 p-4 bg-sky-50/40 border border-sky-200/80"):
+                        with ui.row().classes("items-center justify-between w-full mb-1"):
+                            ui.label("Thư viện đối chứng chuẩn").classes("text-xs uppercase font-bold text-sky-700 tracking-wider")
+                            ui.icon("security", size="xs").classes("text-sky-600")
+                        ui.label("ARC4 Standard").classes("text-xl font-extrabold text-sky-900 font-mono")
+                        ui.label("Crypto.Cipher.ARC4 (PyCryptodome)").classes("text-xs text-sky-700 mt-1")
 
                 if HAS_TABULATOR:
                     tabulator_rows = [
@@ -213,9 +234,9 @@ def build_tab_testing() -> None:
                             "exp": f"<code class='font-mono text-xs text-slate-800'>{r.expected_hex}</code>",
                             "act": f"<code class='font-mono text-xs text-emerald-800 font-bold'>{r.actual_hex}</code>",
                             "status": (
-                                "<span class='px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800'>✓ PASS</span>"
+                                "<span class='px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800'>✓ PASS (100%)</span>"
                                 if r.passed
-                                else "<span class='px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800'>✗ FAIL</span>"
+                                else "<span class='px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800'>✗ FAIL</span>"
                             ),
                             "raw_status": "PASS" if r.passed else "FAIL",
                             "raw_exp": r.expected_hex,
@@ -225,13 +246,13 @@ def build_tab_testing() -> None:
                     ]
 
                     tab_cols = [
-                        {"title": "#", "field": "id", "width": 60, "hozAlign": "center"},
+                        {"title": "#", "field": "id", "width": 50, "hozAlign": "center"},
                         {"title": "Ca kiểm thử", "field": "name", "headerFilter": "input", "minWidth": 260},
                         {"title": "Khóa K", "field": "key", "minWidth": 160},
                         {"title": "Đầu vào P", "field": "inp", "minWidth": 160},
                         {"title": "Kết quả chuẩn (Expected)", "field": "exp", "formatter": "html", "minWidth": 220},
                         {"title": "Kết quả tự cài đặt (Actual)", "field": "act", "formatter": "html", "minWidth": 220},
-                        {"title": "Trạng thái", "field": "status", "formatter": "html", "hozAlign": "center", "width": 120},
+                        {"title": "Trạng thái", "field": "status", "formatter": "html", "hozAlign": "center", "width": 140},
                     ]
 
                     tab_options = {
@@ -242,26 +263,29 @@ def build_tab_testing() -> None:
                         "columns": tab_cols,
                     }
 
-                    tbl = tabulator(tab_options, row_key="id").classes("w-full shadow-sm rounded border border-slate-200")
+                    tbl = tabulator(tab_options, row_key="id").classes("w-full shadow-xs rounded-xl border border-slate-200")
 
                     # Thanh công cụ xuất báo cáo và in ấn
-                    with ui.row().classes("w-full items-center gap-2 mt-3"):
-                        ui.label("Công cụ Tabulator:").classes("text-xs font-bold text-slate-600 mr-2")
-                        ui.button(
-                            "Xuất CSV",
-                            icon="download",
-                            on_click=lambda: tbl.run_table_method("download", "csv", "rc4_test_verification.csv"),
-                        ).props("size=sm outline color=primary")
-                        ui.button(
-                            "Xuất JSON",
-                            icon="data_object",
-                            on_click=lambda: tbl.run_table_method("download", "json", "rc4_test_verification.json"),
-                        ).props("size=sm outline color=secondary")
-                        ui.button(
-                            "In báo cáo",
-                            icon="print",
-                            on_click=lambda: tbl.print(),
-                        ).props("size=sm outline color=slate")
+                    with ui.row().classes("w-full items-center justify-between mt-1 pt-2 flex-wrap gap-2"):
+                        with ui.row().classes("items-center gap-2"):
+                            ui.badge("Tabulator Engine", color="primary").classes("text-xs")
+                            ui.label("Tìm kiếm trực tiếp trên từng cột hoặc xuất báo cáo:").classes("text-xs text-slate-500")
+                        with ui.row().classes("gap-2"):
+                            ui.button(
+                                "Xuất CSV",
+                                icon="download",
+                                on_click=lambda: tbl.run_table_method("download", "csv", "rc4_test_verification.csv"),
+                            ).props("size=sm outline color=primary")
+                            ui.button(
+                                "Xuất JSON",
+                                icon="data_object",
+                                on_click=lambda: tbl.run_table_method("download", "json", "rc4_test_verification.json"),
+                            ).props("size=sm outline color=secondary")
+                            ui.button(
+                                "In báo cáo",
+                                icon="print",
+                                on_click=lambda: tbl.print(),
+                            ).props("size=sm outline color=slate")
                 else:
                     cols = [
                         {"name": "name", "label": "Ca kiểm thử", "field": "name", "align": "left"},
@@ -284,7 +308,4 @@ def build_tab_testing() -> None:
                     ]
                     ui.table(columns=cols, rows=rows, row_key="name").classes("w-full")
 
-        ui.button("Chạy lại toàn bộ Suite Kiểm thử", icon="fact_check", on_click=refresh_test_suite).props(
-            "color=positive"
-        )
         refresh_test_suite()

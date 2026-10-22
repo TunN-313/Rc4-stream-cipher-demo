@@ -13,12 +13,24 @@ from nicegui import ui
 
 
 def build_tab_theory() -> None:
-    """Xây dựng giao diện Tab 5: Lý thuyết, sơ đồ khối & so sánh A5/1."""
-    with ui.card().classes("w-full p-6 shadow-sm"):
-        ui.markdown(
-            r"""
-### 1. Bối Cảnh Lịch Sử & Ứng Dụng Thực Tế
+    """Xây dựng giao diện Tab 5: Lý thuyết, sơ đồ khối Mermaid & so sánh A5/1 theo chuẩn Modular Flat Cards."""
+    with ui.column().classes("w-full gap-5"):
 
+        # ======================================================================
+        # CARD 1: BỐI CẢNH LỊCH SỬ & CỘT MỐC BẢO MẬT RFC 7465
+        # ======================================================================
+        with ui.card().classes("w-full p-6 space-y-3"):
+            with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
+                with ui.row().classes("items-center gap-3"):
+                    with ui.row().classes("w-9 h-9 rounded-lg bg-blue-50 text-blue-700 items-center justify-center border border-blue-200"):
+                        ui.icon("history_edu", size="xs")
+                    with ui.column().classes("gap-0"):
+                        ui.label("1. Bối Cảnh Lịch Sử & Lỗ Hổng Bảo Mật (RFC 7465)").classes("text-base font-bold text-slate-800")
+                        ui.label("Ron Rivest (1987) • Chuẩn mã hóa phổ biến nhất thế giới • Lý do cấm sử dụng").classes("text-xs text-slate-500")
+                ui.badge("Lịch sử mật mã", color="primary").classes("text-xs")
+
+            ui.markdown(
+                r"""
 * **Tác giả & Năm công bố**: Thuật toán được thiết kế bởi **Ron Rivest** (chữ **R** trong hệ mã bất đối xứng RSA) tại hãng RSA Security vào năm **1987**. Ban đầu RC4 là bí mật thương mại độc quyền, đến tháng 9/1994, mã nguồn thuật toán bị rò rỉ ẩn danh lên danh sách thư *Cypherpunks*.
 * **Vị thế lịch sử**: RC4 từng là hệ mã dòng thông dụng nhất thế giới, được tích hợp trong các tiêu chuẩn mạng phổ biến:
   - Giao thức bảo mật mạng không dây Wi-Fi: **WEP (Wired Equivalent Privacy)** và **WPA (TKIP)**.
@@ -27,15 +39,24 @@ def build_tab_theory() -> None:
 * **Lý do bị cấm sử dụng (RFC 7465)**:
   - RC4 có **thiên lệch thống kê (biases)** ở các byte đầu tiên của dòng khóa (nổi tiếng nhất là tấn công FMS trên WEP, tấn công Bar-Mitzvah và NOMORE trên HTTPS).
   - Tháng 2/2015, nhóm kỹ sư Internet Engineering Task Force (IETF) chính thức ban hành **[RFC 7465](https://www.rfc-editor.org/info/rfc7465)** nghiêm cấm mọi việc sử dụng RC4 trong các bộ mã hóa TLS. Hiện nay, các hệ mã dòng hiện đại như **ChaCha20** và mã khối chế độ dòng như **AES-GCM** đã thay thế hoàn toàn RC4.
+                """
+            )
 
----
+        # ======================================================================
+        # CARD 2: SƠ ĐỒ KHỐI THUẬT TOÁN MERMAID
+        # ======================================================================
+        with ui.card().classes("w-full p-6 space-y-3"):
+            with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
+                with ui.row().classes("items-center gap-3"):
+                    with ui.row().classes("w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 items-center justify-center border border-emerald-200"):
+                        ui.icon("schema", size="xs")
+                    with ui.column().classes("gap-0"):
+                        ui.label("2. Sơ Đồ Khối Thuật Toán RC4 (KSA & PRGA)").classes("text-base font-bold text-slate-800")
+                        ui.label("Mã Mermaid vẽ động trong trình duyệt • Không sử dụng hình ảnh chụp").classes("text-xs text-slate-500")
+                ui.badge("Tự vẽ Mermaid", color="positive").classes("text-xs")
 
-### 2. Sơ Đồ Khối Thuật Toán RC4 (Nhóm Tự Thiết Kế Bằng Mermaid)
-            """
-        )
-
-        ui.mermaid(
-            """
+            ui.mermaid(
+                """
 flowchart LR
     subgraph KSA["1. Giai đoạn Khởi tạo Dãy Hoán vị (KSA)"]
         direction TB
@@ -58,14 +79,23 @@ flowchart LR
     class KSA ksa;
     class PRGA prga;
 """
-        ).classes("w-full my-4")
+            ).classes("w-full my-2")
 
-        ui.markdown(
-            r"""
----
+        # ======================================================================
+        # CARD 3: VÍ DỤ TÍNH TAY CHI TIẾT (SLIDE 56-60)
+        # ======================================================================
+        with ui.card().classes("w-full p-6 space-y-4"):
+            with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
+                with ui.row().classes("items-center gap-3"):
+                    with ui.row().classes("w-9 h-9 rounded-lg bg-amber-50 text-amber-700 items-center justify-center border border-amber-200"):
+                        ui.icon("school", size="xs")
+                    with ui.column().classes("gap-0"):
+                        ui.label("3. Ví Dụ Tính Tay Chi Tiết: Bản Rõ P = 'BAG', Khóa K = [2, 1, 3]").classes("text-base font-bold text-slate-800")
+                        ui.label("Bám sát Slide 56–60 bài giảng ATBMTT (Khoa CNTT - ĐH Kinh tế Quốc dân)").classes("text-xs text-slate-500")
+                ui.badge("Slide 56–60", color="warning").classes("text-xs")
 
-### 3. Ví Dụ Tính Tay Chi Tiết: Bản Rõ $P = \text{BAG}$, Khóa $K = [2, 1, 3]$ (Slide 56–60)
-
+            ui.markdown(
+                r"""
 * **Bảng chữ cái 3-bit**: $A=000(0) \mid B=001(1) \mid C=010(2) \mid D=011(3) \mid E=100(4) \mid F=101(5) \mid G=110(6) \mid H=111(7)$.
 * **Bản rõ đầu vào**: $P = \text{BAG} \implies [1, 0, 6]$ (nhị phân: `001 000 110`).
 * **Khóa bí mật**: $K = [2, 1, 3]$ với độ dài $N = 3$.
@@ -101,11 +131,24 @@ $$\implies \text{Kết quả mảng } S \text{ sau giai đoạn KSA: } \mathbf{S
 * Dòng khóa sinh ra: $\mathbf{k = [5, 1, 6]}$ (nhị phân: `101 001 110`).
 * Bản mã thu được: $\mathbf{C = \text{EBA}}$ (nhị phân: `100 001 000`).
 * Giải mã đối xứng: $C \oplus k = [4, 1, 0] \oplus [5, 1, 6] = [1, 0, 6] \implies P = \text{BAG}$ (khôi phục chính xác 100%).
+                """
+            )
 
----
+        # ======================================================================
+        # CARD 4: SO SÁNH ĐA CHIỀU RC4 VỚI A5/1
+        # ======================================================================
+        with ui.card().classes("w-full p-6 space-y-3"):
+            with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
+                with ui.row().classes("items-center gap-3"):
+                    with ui.row().classes("w-9 h-9 rounded-lg bg-purple-50 text-purple-700 items-center justify-center border border-purple-200"):
+                        ui.icon("compare_arrows", size="xs")
+                    with ui.column().classes("gap-0"):
+                        ui.label("4. So Sánh Chuyên Sâu: Hệ Mã RC4 / TinyRC4 và A5/1 (Chương 2)").classes("text-base font-bold text-slate-800")
+                        ui.label("Phân tích cấu trúc mảng hoán vị vs Thanh ghi dịch LFSR, hiệu năng và bảo mật").classes("text-xs text-slate-500")
+                ui.badge("Đối chiếu học phần", color="accent").classes("text-xs")
 
-### 4. So Sánh RC4 Với Hệ Mã Dòng A5/1 (Chương 2)
-
+            ui.markdown(
+                r"""
 | Tiêu Chí So Sánh | Hệ Mã Dòng RC4 / TinyRC4 | Hệ Mã Dòng A5/1 / TinyA5/1 |
 | :--- | :--- | :--- |
 | **Đơn vị xử lý** | Theo **Byte (8-bit)** (TinyRC4: 3-bit) | Theo từng **Bit đơn lẻ (1-bit)** |
@@ -115,5 +158,5 @@ $$\implies \text{Kết quả mảng } S \text{ sau giai đoạn KSA: } \mathbf{S
 | **Hiệu năng phần cứng** | Tốn kém bộ nhớ RAM để lưu mảng $S$ (256 byte) | **Cực kỳ nhỏ gọn**, chỉ cần vài chục cổng Flip-Flop logic và XOR |
 | **Lĩnh vực áp dụng** | Giao thức Web **SSL/TLS**, kết nối mạng **WEP/WPA** | Bảo vệ đàm thoại mạng di động **GSM (2G)** |
 | **Tình trạng thám mã** | Bị cấm bởi RFC 7465 do thiên lệch thống kê byte đầu | Bị phá vỡ bằng tấn công Time-Memory Tradeoff (Rainbow Tables) |
-"""
-        )
+                """
+            )
