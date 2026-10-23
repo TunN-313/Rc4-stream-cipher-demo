@@ -1,11 +1,10 @@
-# Hệ Mã Dòng RC4 & TinyRC4 — Ứng Dụng Minh Họa NiceGUI
+# Hệ Mã Dòng RC4 & TinyRC4 — Phòng Thí Nghiệm Thu Nhỏ
 
-Ứng dụng trực quan hóa và thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng trên nền tảng **Python thuần** và giao diện hiện đại **NiceGUI (SaaS Cryptographic Workbench)**.
+Ứng dụng trực quan hóa và thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng trên nền tảng **Python thuần** và giao diện hiện đại **NiceGUI**.
 
-> **Học phần**: An toàn và Bảo mật Thông tin (Chương 2: Mã hóa khóa đối xứng)  
+> **Học phần**: An toàn và Bảo mật Thông tin   
 > **Đơn vị**: Khoa Công nghệ Thông tin — Đại học Kinh tế Quốc dân (NEU)  
 > **Repository**: [https://github.com/TunN-313/Rc4-stream-cipher-demo](https://github.com/TunN-313/Rc4-stream-cipher-demo)  
-> **Phiên bản**: v2.0 (Kiến trúc Cryptographic Workbench & Tabulator Test Suite)
 
 ---
 
@@ -13,22 +12,14 @@
 
 | Thành viên | Vai trò | Nhánh Git | Nội dung phụ trách chính |
 | :--- | :--- | :--- | :--- |
-| **Thành viên 1 (Frontend)** | Giao diện & Trực quan hóa | `feat/ui-nicegui` | Toàn bộ giao diện Workbench dạng SaaS bằng NiceGUI (`src/ui/*`), thanh điều hướng Side Menu Hover-to-Expand, bảng tương tác Tabulator, biểu đồ ECharts, tải file/ảnh và kiểm thử UI |
+| **Thành viên 1 (Frontend)** | Giao diện & Trực quan hóa | `feat/ui-nicegui` | Toàn bộ giao diện NiceGUI (`src/ui/*`), thanh điều hướng Side Menu Hover-to-Expand, bảng tương tác Tabulator, biểu đồ ECharts, tải file/ảnh và kiểm thử UI |
 | **Thành viên 2 (Backend)** | Thuật toán lõi & Kiểm thử | `feat/core-backend` | Cài đặt KSA, PRGA, XOR thuần Python (`src/core/*`), logic tấn công dùng lại khóa (Two-Time Pad & Crib-dragging), benchmark tốc độ và unit tests (`tests/*`) |
 
 ---
 
-## 2. Điểm Nhấn Kiến Trúc & Thiết Kế Giao Diện
-
-Giao diện ứng dụng được thiết kế theo phong cách **Cryptographic Workbench** chuyên nghiệp:
-- **Hover-to-Expand Side Navigation**: Thanh điều hướng bên trái ở trạng thái thu gọn tinh tế (`w-16`), tự động trượt mở rộng mượt mà (`w-64`) khi rê chuột để hiển thị nhãn tiếng Việt và huy hiệu số thứ tự phân trang trực quan, không chiếm dụng không gian làm việc.
-- **Tối đa hóa không gian thao tác**: Ẩn thanh tab bar ngang cồng kềnh, đẩy toàn bộ nội dung chính lên sát mép trên màn hình.
-- **Right Cheatsheet Drawer**: Cột tra cứu bên phải tích hợp công thức toán học KaTeX, tóm tắt thuật toán KSA/PRGA, ma trận mini S-Box và bảng ánh xạ 3-bit, có thể đóng/mở linh hoạt.
-- **Bottom Status Bar**: Thanh trạng thái thời gian thực hiển thị thông số kết nối backend, module đang kích hoạt và trạng thái hệ thống.
-
 ---
 
-## 3. Các Tính Năng Chính Của Ứng Dụng (5 Phân Hệ / Tabs)
+## 2. Các Tính Năng Chính Của Ứng Dụng (5 Phân Hệ / Tabs)
 
 ### 📌 Tab 1: Trực Quan Hóa TinyRC4 (3-bit Step-by-Step)
 - **Chuẩn hóa học thuật**: Mô phỏng hệ mã dòng 3-bit thu nhỏ trên không gian 8 phần tử ($N=8$, modulo 8) theo đúng bài giảng Khoa CNTT - ĐH Kinh tế Quốc dân (Slide 56–60).
@@ -83,7 +74,7 @@ Giao diện ứng dụng được thiết kế theo phong cách **Cryptographic 
 
 ---
 
-## 4. Cài Đặt & Khởi Chạy Nhanh
+## 3. Cài Đặt & Khởi Chạy Nhanh
 
 ### Yêu cầu môi trường
 - **Python**: 3.9 trở lên
@@ -118,7 +109,7 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ---
 
-## 5. Chạy Kiểm Thử Tự Động (Unit Tests)
+## 4. Chạy Kiểm Thử Tự Động (Unit Tests)
 
 Chạy kiểm thử bằng lệnh `unittest` có sẵn trong Python:
 ```bash
@@ -142,12 +133,11 @@ OK
 
 ---
 
-## 6. Cấu Trúc Thư Mục Dự Án
+## 5. Cấu Trúc Thư Mục Dự Án
 
 ```text
 .
 ├── .gitignore                    # Bỏ qua cache, venv và tệp tạm
-├── GEMINI.md                     # Quy chuẩn học thuật và phân tách kiến trúc
 ├── README.md                     # Tài liệu hướng dẫn toàn diện dự án
 ├── requirements.txt              # Danh sách thư viện phụ thuộc
 ├── main.py                       # Điểm khởi chạy chính ứng dụng NiceGUI (Port 8080)
@@ -185,6 +175,3 @@ OK
 
 ---
 
-## 7. Ràng Buộc Học Thuật & Cam Kết Mã Nguồn
-- **Không sử dụng thư viện mật mã trong thuật toán lõi**: Cả hai tệp `src/core/tiny_rc4.py` và `src/core/rc4.py` đều được lập trình bằng toán tử cơ bản thuần Python (`%`, `^`, danh sách hoán vị).
-- **Tính đối chứng khách quan**: Thư viện `Crypto.Cipher.ARC4` chỉ được dùng làm chuẩn đối chiếu trong `tests/` và Tab 3 nhằm khẳng định tính chính xác của thuật toán tự xây dựng.
