@@ -7,7 +7,7 @@ Ràng buộc: TUYỆT ĐỐI KHÔNG dùng thư viện mật mã có sẵn bên t
 
 from __future__ import annotations
 import time
-from typing import List
+from typing import Iterator, List
 
 from src.core.models import FullRC4Result
 
@@ -69,3 +69,49 @@ def rc4_crypt_with_details(data: bytes, key_bytes: bytes, preview_len: int = 16)
 def rc4_crypt(data: bytes, key_bytes: bytes) -> bytes:
     """Hàm rút gọn trả về trực tiếp bytes bản mã / bản rõ."""
     return rc4_crypt_with_details(data, key_bytes, preview_len=0).output_bytes
+
+
+def rc4_crypt_chunks(
+    data: bytes,
+    key_bytes: bytes,
+    chunk_size: int = 65536,
+) -> Iterator[bytes]:
+    """Mã hóa / giải mã RC4 theo khối (chunked streaming generator).
+
+    Khởi tạo KSA một lần duy nhất, duy trì trạng thái mảng S và con trỏ i, j
+    liên tục qua các khối dữ liệu. Kết quả nối tất cả các khối trả về khớp
+    hoàn toàn với rc4_crypt one-shot.
+
+    Args:
+        data: Dữ liệu bytes đầu vào.
+        key_bytes: Khóa bí mật (1-256 byte).
+        chunk_size: Kích thước mỗi khối bytes sinh ra (mặc định 65536, >= 1).
+
+    Yields:
+        Các khối bytes đã được mã hóa/giải mã.
+
+    Raises:
+        ValueError: Nếu chunk_size < 1 hoặc khóa không hợp lệ (rỗng / > 256 byte).
+    """
+    if chunk_size < 1:
+        raise ValueError("chunk_size phải lớn hơn hoặc bằng 1.")
+
+    s_arr = rc4_ksa(key_bytes)
+    total_len = len(data)
+    if total_len == 0:
+        return
+
+    i = 0
+    j = 0
+    for offset in range(0, total_len, chunk_size):
+        chunk = data[offset : offset + chunk_size]
+        chunk_len = len(chunk)
+        out_chunk = bytearray(chunk_len)
+        for idx in range(chunk_len):
+            i = (i + 1) % 256
+            j = (j + s_arr[i]) % 256
+            s_arr[i], s_arr[j] = s_arr[j], s_arr[i]
+            t = (s_arr[i] + s_arr[j]) % 256
+            out_chunk[idx] = chunk[idx] ^ s_arr[t]
+        yield bytes(out_chunk)
+

@@ -2,7 +2,7 @@
 Bố Cục Chính Cryptographic Workbench (src/ui/layout.py)
 =========================================================
 Thiết kế theo chuẩn SaaS Application Shell với Hover-to-Expand Side Menu:
-- Side Menu (Trái): Lướt chuột tự mở rộng (w-16 -> w-64), 5 mục điều hướng có Active State
+- Side Menu (Trái): Lướt chuột tự mở rộng (w-16 -> w-64), 6 mục điều hướng có Active State
   Đảm bảo flex-nowrap và max-w-0 khi thu gọn, triệt tiêu 100% hiện tượng đè text/icon.
 - Main Content (Giữa): Mặc định mở Tab 1 (TinyRC4), ẩn thanh tabs ngang, nội dung đẩy sát lên trên cùng
 - Right Sidebar (Phải): Bảng tra cứu S-Box, Quy đổi 3-bit, Công thức KaTeX
@@ -13,7 +13,8 @@ from __future__ import annotations
 from nicegui import ui
 
 from src.ui.tab_tiny_rc4 import build_tab_tiny_rc4
-from src.ui.tab_full_rc4 import build_tab_full_rc4
+from src.ui.tab_rc4_text import build_tab_rc4_text
+from src.ui.tab_rc4_file import build_tab_rc4_file
 from src.ui.tab_testing import build_tab_testing
 from src.ui.tab_attack_bench import build_tab_attack_bench
 from src.ui.tab_theory import build_tab_theory
@@ -151,7 +152,7 @@ def _inject_katex_and_fonts() -> None:
 
 
 def build_nicegui_interface() -> None:
-    """Khởi tạo toàn bộ giao diện theo chuẩn Cryptographic Workbench (5 Tabs trực tiếp)."""
+    """Khởi tạo toàn bộ giao diện theo chuẩn Cryptographic Workbench (6 Tabs trực tiếp)."""
     # 1. Tích hợp phông chữ & KaTeX
     _inject_katex_and_fonts()
 
@@ -205,7 +206,7 @@ def build_nicegui_interface() -> None:
                 "transition-all duration-300 ease-in-out overflow-hidden "
                 "flex flex-col justify-between py-3.5 px-0 z-30 shrink-0 h-full select-none shadow-xl"
             ):
-                # Khối Trên: Brand / Logo + 5 Mục Menu Điều Hướng (Tab 1 -> Tab 5)
+                # Khối Trên: Brand / Logo + 6 Mục Menu Điều Hướng (Tab 1 -> Tab 5)
                 with ui.column().classes("w-full gap-2 px-0"):
                     # Logo Header (flex-nowrap, click chuyển về Tab 1)
                     with ui.row().classes(
@@ -225,20 +226,34 @@ def build_nicegui_interface() -> None:
 
                     ui.separator().classes("w-full bg-slate-800/80 mb-2")
 
-                    # Khai báo cấu trúc 5 mục menu điều hướng (Bắt đầu từ Tab 1)
-                    menu_config = [
+                    # Cấu trúc menu điều hướng (Tab 1, Nhóm RC4 Chuẩn & File, Tab 3 -> Tab 5)
+                    menu_config_before = [
                         {
                             "id": "tab1",
                             "title": "TinyRC4 (3-bit)",
                             "subtitle": "Mô hình 3-bit Modulo 8",
                             "icon": "calculate",
                         },
-                        {
-                            "id": "tab2",
-                            "title": "RC4 Chuẩn & File",
-                            "subtitle": "Mảng S 256 bytes & Ảnh",
-                            "icon": "lock",
-                        },
+                    ]
+                    group_rc4_config = {
+                        "id": "group_rc4",
+                        "title": "RC4 Chuẩn & File",
+                        "subtitle": "Văn bản & Ảnh/Tệp",
+                        "icon": "lock",
+                        "children": [
+                            {
+                                "id": "tab2_text",
+                                "title": "Văn bản (UTF-8)",
+                                "icon": "text_fields",
+                            },
+                            {
+                                "id": "tab2_file",
+                                "title": "Ảnh & Tệp",
+                                "icon": "image",
+                            },
+                        ],
+                    }
+                    menu_config_after = [
                         {
                             "id": "tab3",
                             "title": "Kiểm Thử (RFC 6229)",
@@ -260,9 +275,10 @@ def build_nicegui_interface() -> None:
                     ]
 
                     nav_rows: dict[str, ui.row] = {}
+                    child_rows: dict[str, ui.row] = {}
 
-                    # Render 5 mục menu điều hướng (BẮT BUỘC flex-nowrap, icon shrink-0, text max-w-0)
-                    for item in menu_config:
+                    # Hàm render mục menu thường (h-12)
+                    def render_nav_row(item: dict[str, str]) -> ui.row:
                         is_initial_active = (item["id"] == "tab1")
                         init_classes = (
                             "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden "
@@ -273,19 +289,77 @@ def build_nicegui_interface() -> None:
                             )
                         )
                         with ui.row().classes(init_classes) as row_elem:
-                            # Icon 40px cố định, chính giữa hoàn hảo khi w-16
                             with ui.row().classes("shrink-0 w-10 h-10 flex items-center justify-center m-0 p-0"):
                                 ui.icon(item["icon"], size="sm")
 
-                            # Nhãn chữ có max-w-0 khi thu gọn và max-w-[180px] khi hover, chống 100% bẻ dòng
                             with ui.column().classes(
                                 "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
                                 "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
                             ):
                                 ui.label(item["title"]).classes("text-sm font-semibold leading-tight truncate text-current")
                                 ui.label(item["subtitle"]).classes("text-3xs text-slate-400 font-mono truncate")
+                        return row_elem
 
-                        nav_rows[item["id"]] = row_elem
+                    # 1. Render Tab 1 (TinyRC4)
+                    for item in menu_config_before:
+                        nav_rows[item["id"]] = render_nav_row(item)
+
+                    # 2. Render Header Nhóm "RC4 Chuẩn & File" có icon chevron
+                    group_header_classes = (
+                        "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden "
+                        "text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
+                    )
+                    with ui.row().classes(group_header_classes) as group_header_row:
+                        with ui.row().classes("shrink-0 w-10 h-10 flex items-center justify-center m-0 p-0"):
+                            ui.icon(group_rc4_config["icon"], size="sm")
+
+                        with ui.column().classes(
+                            "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
+                            "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
+                        ):
+                            ui.label(group_rc4_config["title"]).classes("text-sm font-semibold leading-tight truncate text-current")
+                            ui.label(group_rc4_config["subtitle"]).classes("text-3xs text-slate-400 font-mono truncate")
+
+                        with ui.row().classes("shrink-0 w-5 h-5 flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 mr-1"):
+                            chevron_icon = ui.icon("expand_more", size="xs").classes("text-slate-400")
+
+                    # 3. Render Khối Con (Sub menu) chứa tab2_text và tab2_file
+                    with ui.column().classes("w-full gap-0.5 px-0 overflow-hidden transition-all duration-200") as sub_menu_col:
+                        for child in group_rc4_config["children"]:
+                            child_init_classes = (
+                                "w-full flex items-center flex-nowrap h-10 px-3 group-hover:pl-6 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden "
+                                "text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
+                            )
+                            with ui.row().classes(child_init_classes) as c_row:
+                                with ui.row().classes("shrink-0 w-10 h-8 flex items-center justify-center m-0 p-0"):
+                                    ui.icon(child["icon"], size="xs")
+
+                                with ui.column().classes(
+                                    "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
+                                    "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
+                                ):
+                                    ui.label(child["title"]).classes("text-xs font-semibold leading-tight truncate text-current")
+
+                            child_rows[child["id"]] = c_row
+
+                    # Khối con mặc định đóng
+                    is_sub_menu_open = False
+                    sub_menu_col.set_visibility(False)
+
+                    def set_sub_menu_state(open_state: bool) -> None:
+                        nonlocal is_sub_menu_open
+                        is_sub_menu_open = open_state
+                        sub_menu_col.set_visibility(open_state)
+                        chevron_icon.name = "expand_less" if open_state else "expand_more"
+
+                    def toggle_sub_menu() -> None:
+                        set_sub_menu_state(not is_sub_menu_open)
+
+                    group_header_row.on("click", lambda _e: toggle_sub_menu())
+
+                    # 4. Render các Tab còn lại (Tab 3 -> Tab 5)
+                    for item in menu_config_after:
+                        nav_rows[item["id"]] = render_nav_row(item)
 
                 # Khối Dưới: Nút Cài Đặt PWA + Thông tin NEU & Avatar (flex-nowrap, không bị co kéo)
                 with ui.column().classes("w-full px-0 gap-1.5"):
@@ -326,14 +400,16 @@ def build_nicegui_interface() -> None:
                 # ẨN HOÀN TOÀN THANH TABS NGANG Ở TRÊN ĐẦU
                 with ui.tabs().props("dense no-caps").classes("hidden") as main_tabs:
                     tab1 = ui.tab("tab1")
-                    tab2 = ui.tab("tab2")
+                    tab2_text = ui.tab("tab2_text")
+                    tab2_file = ui.tab("tab2_file")
                     tab3 = ui.tab("tab3")
                     tab4 = ui.tab("tab4")
                     tab5 = ui.tab("tab5")
 
                 tab_map = {
                     "tab1": tab1,
-                    "tab2": tab2,
+                    "tab2_text": tab2_text,
+                    "tab2_file": tab2_file,
                     "tab3": tab3,
                     "tab4": tab4,
                     "tab5": tab5,
@@ -346,8 +422,11 @@ def build_nicegui_interface() -> None:
                     with ui.tab_panel(tab1).classes("p-0 space-y-5"):
                         build_tab_tiny_rc4()
 
-                    with ui.tab_panel(tab2).classes("p-0 space-y-5"):
-                        build_tab_full_rc4()
+                    with ui.tab_panel(tab2_text).classes("p-0 space-y-5"):
+                        build_tab_rc4_text()
+
+                    with ui.tab_panel(tab2_file).classes("p-0 space-y-5"):
+                        build_tab_rc4_file()
 
                     with ui.tab_panel(tab3).classes("p-0 space-y-5"):
                         build_tab_testing()
@@ -434,22 +513,51 @@ def build_nicegui_interface() -> None:
     # =========================================================================
     # HÀM XỬ LÝ CHUYỂN TAB & CẬP NHẬT TRẠNG THÁI ACTIVE CỦA SIDE MENU
     # =========================================================================
+    active_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden bg-blue-600 text-white font-bold border-l-sky-300 shadow-md"
+    inactive_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
+
+    group_header_inactive = inactive_class
+    group_header_child_active = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden text-white font-semibold border-l-sky-300 bg-slate-900/60 hover:bg-slate-900"
+
+    child_active_class = "w-full flex items-center flex-nowrap h-10 px-3 group-hover:pl-6 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden bg-blue-600 text-white font-bold border-l-sky-300 shadow-md"
+    child_inactive_class = "w-full flex items-center flex-nowrap h-10 px-3 group-hover:pl-6 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
+
+    child_tab_ids = {"tab2_text", "tab2_file"}
+
     def switch_tab(target_id: str) -> None:
+        if target_id not in tab_map:
+            return
         target_tab = tab_map[target_id]
         main_tabs.set_value(target_tab)
 
-        active_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden bg-blue-600 text-white font-bold border-l-sky-300 shadow-md"
-        inactive_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
-
+        # 1. Cập nhật style cho các mục menu thường
         for item_id, row_obj in nav_rows.items():
             if item_id == target_id:
                 row_obj.classes(replace=active_class)
             else:
                 row_obj.classes(replace=inactive_class)
 
-    # Gắn sự kiện click cho từng mục trong Side Menu
+        # 2. Cập nhật style cho các mục con trong nhóm
+        for child_id, child_row in child_rows.items():
+            if child_id == target_id:
+                child_row.classes(replace=child_active_class)
+            else:
+                child_row.classes(replace=child_inactive_class)
+
+        # 3. Cập nhật trạng thái header nhóm & tự động mở submenu khi tab con được chọn
+        if target_id in child_tab_ids:
+            group_header_row.classes(replace=group_header_child_active)
+            set_sub_menu_state(True)
+        else:
+            group_header_row.classes(replace=group_header_inactive)
+
+    # Gắn sự kiện click cho từng mục thường trong Side Menu
     for item_id, row_obj in nav_rows.items():
         row_obj.on("click", lambda _e, i_id=item_id: switch_tab(i_id))
 
-    # Click logo chuyển về Tab 1
+    # Gắn sự kiện click cho các mục con trong nhóm
+    for child_id, child_row in child_rows.items():
+        child_row.on("click", lambda _e, c_id=child_id: switch_tab(c_id))
+
+    # Click logo chuyển về Tab 1 (không làm hỏng trạng thái nhóm)
     brand_logo_row.on("click", lambda: switch_tab("tab1"))

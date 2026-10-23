@@ -160,12 +160,14 @@ OK
 │   │   ├── rc4.py                # Thuật toán RC4 chuẩn (8-bit, 256 bytes)
 │   │   ├── attack_demo.py        # Logic tấn công Two-Time Pad & Crib-dragging
 │   │   └── benchmark.py          # Đo tốc độ mã hóa qua các kích thước tệp
-│   └── ui/                       # [FRONTEND] - Giao diện SaaS Cryptographic Workbench
+│   └── ui/                       # [FRONTEND] - Giao diện
 │       ├── __init__.py
 │       ├── layout.py             # Khung Workbench, Sidebar Hover-to-Expand, Status Bar
 │       ├── pwa.py                # Quản lý Web App Manifest, Service Worker & Install PWA
 │       ├── tab_tiny_rc4.py       # Phân hệ 1: Trực quan hóa TinyRC4 từng bước
-│       ├── tab_full_rc4.py       # Phân hệ 2: RC4 256-byte, Văn bản UTF-8 & File/Ảnh
+│       ├── tab_rc4_text.py       # Phân hệ 2a: RC4 Văn Bản (UTF-8 & Mảng S 256 byte)
+│       ├── tab_rc4_file.py       # Phân hệ 2b: RC4 Ảnh & Tệp (Pipeline 3 bước)
+│       ├── file_pipeline.py      # Core UI Pipeline: Nạp → Mã hóa → Giải mã
 │       ├── tab_testing.py        # Phân hệ 3: Bảng Tabulator kiểm thử 8/8 & RFC 6229
 │       ├── tab_attack_bench.py   # Phân hệ 4: Mô phỏng Two-Time Pad & Biểu đồ ECharts
 │       └── tab_theory.py         # Phân hệ 5: Lý thuyết, sơ đồ Mermaid & So sánh A5/1
