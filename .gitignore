@@ -21,6 +21,7 @@ ENV/
 .idea/
 .gemini/
 .agents/
+GEMINI.md
 
 # Temporary / OS
 .DS_Store
