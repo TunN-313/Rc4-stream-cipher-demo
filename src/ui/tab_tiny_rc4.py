@@ -1,20 +1,26 @@
-"""
-Tab 1: Thực Thi & Trực Quan Hóa Từng Bước TinyRC4 (3-bit)
-==========================================================
-Bám sát Slide 53-60 bài giảng ATBMTT (Khoa CNTT - ĐH Kinh tế Quốc dân)
-Mô hình thu nhỏ: Đơn vị 3-bit, mảng S & T gồm 8 phần tử (0..7), modulo 8.
-Giao diện sắc nét, bảng biểu trực quan và chip quy đổi ký tự chuẩn.
+"""Tab 1: Thực thi và trực quan hóa từng bước thuật toán TinyRC4 (3-bit).
+
+Người dùng nhập bản rõ/bản mã (A..H hoặc 3-bit nhị phân) và khóa bí mật (0..7),
+hoặc bấm nút nạp ví dụ mẫu bài giảng NEU, thực thi mã hóa và giải mã đối xứng.
+Giao diện gọi hàm run_tiny_rc4() trong src/core/tiny_rc4.py và hiển thị bảng chi tiết KSA, PRGA.
+Mọi phép toán tuân thủ đúng chuẩn giáo trình An toàn & Bảo mật Thông tin NEU.
 """
 
-from __future__ import annotations
-from nicegui import ui
+from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
+from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
 
-from src.core.models import TinyRC4Result
-from src.core.tiny_rc4 import run_tiny_rc4
+from src.core.models import TinyRC4Result  # file nội bộ: cấu trúc dữ liệu kết quả thực thi TinyRC4
+from src.core.tiny_rc4 import run_tiny_rc4  # file nội bộ: hàm thuật toán cốt lõi TinyRC4
 
 
 def build_tab_tiny_rc4() -> None:
-    """Xây dựng giao diện Tab 1: TinyRC4 Step-by-Step theo chuẩn Flat Card Dashboard hiện đại."""
+    """Xây dựng giao diện Tab 1: Trực quan hóa từng bước TinyRC4 (Slide 53-60 NEU).
+
+    Tham số: Không có.
+    Giá trị trả về: Không có (dựng các thành phần trực tiếp lên giao diện NiceGUI).
+    Ví dụ: build_tab_tiny_rc4()
+    """
+    # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
     # Khung điều khiển & Nhập liệu chính (Flat Control Card)
     with ui.card().classes("w-full p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs"):
         with ui.row().classes("w-full items-center justify-between mb-4 flex-wrap gap-3"):
@@ -54,6 +60,7 @@ def build_tab_tiny_rc4() -> None:
                     ("H", 7, "111"),
                 ]
                 for letter, num, bit_str in alphabet_mapping:
+                    # Bấm nút chữ cái này để tự động điền vào ô bản rõ
                     with ui.button(
                         on_click=lambda l=letter: append_letter_to_input(l)
                     ).props("flat dense").classes(
@@ -65,12 +72,14 @@ def build_tab_tiny_rc4() -> None:
 
         # Form nhập liệu
         with ui.row().classes("w-full gap-4 items-center"):
+            # Ô nhập bản rõ P hoặc bản mã C cần xử lý
             tiny_in = ui.input(
                 label="Bản rõ P hoặc Bản mã C (chữ cái A..H hoặc chuỗi 3-bit)",
                 value="BAG",
                 placeholder="Ví dụ: BAG hoặc 001 000 110",
             ).props("outlined clearable").classes("flex-1 text-sm font-medium")
 
+            # Ô nhập khóa bí mật K gồm các số nguyên từ 0 đến 7
             tiny_key = ui.input(
                 label="Khóa bí mật K (1..8 số từ 0 đến 7, cách nhau dấu phẩy)",
                 value="2, 1, 3",
@@ -78,7 +87,9 @@ def build_tab_tiny_rc4() -> None:
             ).props("outlined clearable").classes("flex-1 text-sm font-medium")
 
         # Thanh nút thao tác cao cấp (Gradient Primary & Action Buttons)
+        # hàm callback: hàm được tự động gọi khi người dùng bấm nút trên giao diện
         with ui.row().classes("gap-3 mt-4 items-center flex-wrap"):
+            # Bấm nút này gọi run_tiny_rc4() trong core và hiển thị bảng KSA, PRGA ở ksa_container
             ui.button(
                 "Thực thi TinyRC4",
                 icon="play_arrow",
@@ -86,11 +97,13 @@ def build_tab_tiny_rc4() -> None:
             ).classes(
                 "bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all"
             )
+            # Bấm nút này điền P='BAG', K=[2,1,3] và gọi handle_tiny_run() hiển thị kết quả khớp slide NEU
             ui.button(
                 "Nạp ví dụ mẫu P='BAG', K=[2,1,3]",
                 icon="school",
                 on_click=lambda: load_classroom_example(),
             ).props("outline color=primary").classes("px-4 py-2 rounded-xl font-semibold")
+            # Bấm nút này lấy output làm input, gọi run_tiny_rc4() để khôi phục bản rõ ban đầu
             ui.button(
                 "Đảo kết quả để giải mã đối xứng",
                 icon="swap_horiz",
@@ -101,6 +114,12 @@ def build_tab_tiny_rc4() -> None:
     ksa_container = ui.column().classes("w-full gap-4 mt-3")
 
     def append_letter_to_input(letter: str) -> None:
+        """Nối ký tự hoặc mã nhị phân tương ứng vào ô nhập liệu bản rõ P.
+
+        Tham số:
+            letter: Ký tự chữ cái A..H cần bổ sung.
+        Giá trị trả về: Không có.
+        """
         current = tiny_in.value or ""
         # Nếu đang là chuỗi nhị phân thì thêm dạng nhị phân, ngược lại thêm chữ cái
         if current.replace(" ", "").isdigit():
@@ -110,6 +129,13 @@ def build_tab_tiny_rc4() -> None:
             tiny_in.value = current + letter
 
     def render_tiny_result(res: TinyRC4Result, mode_label: str) -> None:
+        """Hiển thị kết quả thực thi TinyRC4 gồm 3 thẻ tóm tắt và 2 bảng chi tiết KSA, PRGA.
+
+        Tham số:
+            res: Đối tượng TinyRC4Result chứa toàn bộ lịch sử các bước KSA, PRGA từ core.
+            mode_label: Nhãn hiển thị chế độ (ví dụ 'Giải mã ngược lại').
+        Giá trị trả về: Không có.
+        """
         ksa_container.clear()
         with ksa_container:
             # 1. Thẻ tóm tắt chỉ số Dashboard (3 Metric Cards - High-contrast & Modern Crypto Style)
@@ -205,6 +231,7 @@ def build_tab_tiny_rc4() -> None:
                     }
                     for st in res.ksa_steps
                 ]
+                # ui.table: bảng hiển thị dữ liệu dạng lưới gồm nhiều hàng và cột (bảng KSA)
                 ui.table(columns=ksa_cols, rows=ksa_rows, row_key="step_i").classes(
                     "w-full border border-slate-200/80 rounded-xl overflow-hidden font-mono text-xs"
                 )
@@ -247,11 +274,18 @@ def build_tab_tiny_rc4() -> None:
                     }
                     for st in res.prga_steps
                 ]
+                # ui.table: bảng hiển thị dữ liệu dạng lưới gồm nhiều hàng và cột (bảng PRGA)
                 ui.table(columns=prga_cols, rows=prga_rows, row_key="step").classes(
                     "w-full border border-slate-200/80 rounded-xl overflow-hidden font-mono text-xs"
                 )
 
     def handle_tiny_run(mode_label: str = "") -> None:
+        """Xử lý gọi hàm run_tiny_rc4 từ src/core và hiển thị kết quả lên giao diện.
+
+        Tham số:
+            mode_label: Nhãn bổ sung cho tiêu đề kết quả (mặc định rỗng).
+        Giá trị trả về: Không có.
+        """
         try:
             res = run_tiny_rc4(tiny_in.value, tiny_key.value)
             render_tiny_result(res, mode_label)
@@ -259,11 +293,21 @@ def build_tab_tiny_rc4() -> None:
             ui.notify(str(exc), type="negative")
 
     def load_classroom_example() -> None:
+        """Điền dữ liệu ví dụ chuẩn Slide 56-60 NEU (P='BAG', K=[2,1,3]) và chạy mô phỏng.
+
+        Tham số: Không có.
+        Giá trị trả về: Không có.
+        """
         tiny_in.value = "BAG"
         tiny_key.value = "2, 1, 3"
         handle_tiny_run("")
 
     def swap_to_decrypt() -> None:
+        """Đưa bản mã đầu ra làm đầu vào để minh họa tính đối xứng giải mã của RC4.
+
+        Tham số: Không có.
+        Giá trị trả về: Không có.
+        """
         try:
             res = run_tiny_rc4(tiny_in.value, tiny_key.value)
             tiny_in.value = res.output_text

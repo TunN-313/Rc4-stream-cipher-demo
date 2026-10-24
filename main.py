@@ -1,30 +1,23 @@
 #!/usr/bin/env python3
-"""
-Điểm Khởi Chạy Ứng Dụng Hệ Mã Dòng RC4 & TinyRC4 (NiceGUI)
-==========================================================
-Học phần: An toàn và Bảo mật Thông tin (Chương 2)
-Khoa Công nghệ Thông tin - Đại học Kinh tế Quốc dân (NEU)
+"""Điểm khởi chạy ứng dụng web mô phỏng hệ mã dòng TinyRC4 và RC4 đầy đủ.
 
-Cách chạy:
-    python main.py
-Sau đó mở trình duyệt tại: http://localhost:8080
+Người dùng trực tiếp khởi thi file này từ dòng lệnh: `python main.py`.
+File này gọi hàm build_nicegui_interface() trong src/ui/layout.py để dựng giao diện,
+sau đó gọi ui.run() để khởi động máy chủ web cục bộ tại cổng 8080.
 """
 
-from nicegui import ui
-from src.ui import build_nicegui_interface
-from src.ui.pwa import setup_pwa_routes
+from pathlib import Path  # dùng để xử lý đường dẫn tệp tin hệ thống an toàn
+from nicegui import ui  # dùng để xây dựng và điều khiển giao diện web tương tác bằng Python
+from src.ui import build_nicegui_interface  # file nội bộ của dự án: tạo toàn bộ khung giao diện
 
 if __name__ in {"__main__", "__mp_main__"}:
-    # 1. Đăng ký các endpoints PWA (manifest, sw.js, static)
-    setup_pwa_routes()
-
-    # 2. Xây dựng giao diện Workbench
+    # 1. Xây dựng giao diện ứng dụng (gồm 6 tab chức năng và thanh điều hướng)
     build_nicegui_interface()
 
-    # 3. Khởi chạy máy chủ NiceGUI
+    # 2. Khởi chạy máy chủ web NiceGUI (ui.run lắng nghe kết nối từ trình duyệt)
     ui.run(
-        title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",
-        favicon="/favicon.ico",
-        port=8080,
-        reload=True,
+        title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",  # tiêu đề hiển thị trên tab trình duyệt
+        favicon=Path(__file__).parent / "static" / "favicon.ico",  # biểu tượng nhỏ trên tab web
+        port=8080,  # mở cổng dịch vụ web tại địa chỉ cục bộ http://localhost:8080
+        reload=True,  # tự động nạp lại giao diện khi lập trình viên chỉnh sửa mã nguồn
     )
