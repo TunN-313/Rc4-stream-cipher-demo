@@ -79,51 +79,82 @@
 - **Python**: 3.9 trở lên
 - **Trình duyệt**: Google Chrome, Microsoft Edge, Firefox, hoặc Safari
 
-### 1. Cài đặt các thư viện phụ thuộc
+### 1. (Khuyến nghị) Tạo và kích hoạt môi trường ảo
+```bash
+# Trên Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# Trên Linux / macOS
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 2. Cài đặt các thư viện phụ thuộc
 ```bash
 pip install -r requirements.txt
 ```
 
 *Nội dung các gói phụ thuộc chính:*
-- `nicegui>=2.0.0`: Nền tảng xây dựng giao diện web tương tác bằng Python.
+- `nicegui>=3.0,<4.0`: Nền tảng xây dựng giao diện web tương tác bằng Python.
 - `nicegui-tabulator>=0.3.1`: Hiển thị bảng kiểm thử tương tác cao cấp.
 - `pillow>=10.0.0`: Xử lý tệp hình ảnh nhị phân.
 - `pytest>=8.0.0`: Hỗ trợ chạy kịch bản unit test.
+- `pytest-asyncio>=0.23`: Hỗ trợ chạy kiểm thử bất đồng bộ cho NiceGUI.
 
-### 2. Khởi chạy ứng dụng
+### 3. Khởi chạy ứng dụng
 ```bash
 python main.py
 ```
 Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
 👉 **[http://localhost:8080](http://localhost:8080)**
 
+> **Gợi ý tra cứu**: Để chuẩn bị nội dung thuyết trình hoặc giải thích mã nguồn cho người không chuyên, bạn có thể tham khảo tài liệu [docs/CHU_GIAI.md](docs/CHU_GIAI.md) chứa 3 bảng tra cứu nhanh thuật ngữ, thư viện và bản đồ hàm.
+
 ---
 
-## 3. Chạy Kiểm Thử Tự Động (Unit Tests)
+## 4. Chạy Kiểm Thử Tự Động (Unit Tests)
 
-Chạy kiểm thử bằng lệnh `unittest` có sẵn trong Python:
+Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/test_rc4_lab.py`, bao gồm **43 ca kiểm thử** và **28 subtests** kiểm tra trọn vẹn 6 nhóm chức năng:
+1. **Core RC4**: Đối chiếu 8 vector chuẩn (RFC 6229, Wikipedia), tính toàn vẹn ảnh nhị phân, ví dụ Slide NEU 56–60.
+2. **Streaming Chunked**: Kiểm tra chia khối (chunks), tối ưu bộ nhớ RAM, bảo toàn tính đối xứng và xử lý ngoại lệ.
+3. **Quản lý khóa & Mã hóa**: Sinh khóa ngẫu nhiên CSPRNG, chuyển đổi bytes, số nguyên và chuỗi Hex.
+4. **Tấn công dòng khóa**: Lỗ hổng Two-Time Pad, triệt tiêu dòng khóa $C_1 \oplus C_2$, kỹ thuật thám mã Crib-dragging.
+5. **Thiên lệch thống kê**: Hiện tượng thiên lệch Mantin–Shamir tại byte thứ 2 của dòng khóa.
+6. **Kiểm thử giao diện (UI Tests)**: Pipeline mã hóa tệp tin/hình ảnh, bảng Tabulator, kiểm tra giới hạn dung lượng tệp.
+
+### Lệnh chạy kiểm thử nhanh với pytest:
 ```bash
-python -m unittest tests/test_rc4_core.py -v
+pytest -q
 ```
 
-Hoặc chạy bằng `pytest`:
+### Lệnh chạy kiểm thử chi tiết từng test case:
 ```bash
 pytest tests/ -v
 ```
 
+Hoặc chạy bằng `unittest` có sẵn trong Python:
+```bash
+python -m unittest tests/test_rc4_lab.py -v
+```
+
 Kết quả kiểm thử tiêu chuẩn:
 ```text
-test_all_verification_vectors (tests.test_rc4_core.TestRC4Core) ... ok
-test_binary_image_encryption_roundtrip (tests.test_rc4_core.TestRC4Core) ... ok
-test_classroom_tiny_rc4_slide_56_to_60 (tests.test_rc4_core.TestRC4Core) ... ok
-----------------------------------------------------------------------
-Ran 3 tests in 0.060s
-OK
+tests/test_rc4_lab.py::TestRC4Core::test_all_verification_vectors PASSED [  2%]
+tests/test_rc4_lab.py::TestRC4Core::test_binary_image_encryption_roundtrip PASSED [  4%]
+tests/test_rc4_lab.py::TestRC4Core::test_classroom_tiny_rc4_slide_56_to_60 PASSED [  6%]
+tests/test_rc4_lab.py::TestRC4Chunks::test_chunked_equals_oneshot_5000_bytes PASSED [  9%]
+...
+tests/test_rc4_lab.py::test_attack_ui_shows_candidates PASSED            [ 95%]
+tests/test_rc4_lab.py::test_attack_ui_toggle_p2_and_custom_crib PASSED   [ 97%]
+tests/test_rc4_lab.py::test_bias_card_ui_experiment PASSED               [100%]
+
+=================== 43 passed, 28 subtests passed in 10.24s ===================
 ```
 
 ---
 
-## 4. Cấu Trúc Thư Mục Dự Án
+## 5. Cấu Trúc Thư Mục Dự Án
 
 ```text
 .
@@ -132,6 +163,8 @@ OK
 ├── pytest.ini                    # Cấu hình kiểm thử pytest (asyncio mode)
 ├── requirements.txt              # Danh sách thư viện phụ thuộc chính
 ├── main.py                       # Điểm khởi chạy chính ứng dụng NiceGUI (Port 8080)
+├── docs/                         # Tài liệu thuyết trình & học tập
+│   └── CHU_GIAI.md               # 3 bảng chú giải thuật ngữ, thư viện và bản đồ hàm
 ├── static/                       # Tài nguyên tĩnh
 │   └── favicon.ico               # Biểu tượng ứng dụng
 ├── sample_data/                  # Dữ liệu thử nghiệm mẫu
@@ -146,9 +179,7 @@ OK
 │   │   ├── rc4.py                # Thuật toán RC4 chuẩn (8-bit, 256 bytes & streaming chunked)
 │   │   ├── keys.py               # Quản lý & sinh khóa RC4/TinyRC4 (CSPRNG secrets)
 │   │   ├── encoding.py           # Chuyển đổi định dạng dữ liệu (Bytes, n-bit, Hex)
-│   │   ├── attack_demo.py        # Logic tấn công Two-Time Pad & Crib-dragging
-│   │   ├── benchmark.py          # Đo tốc độ mã hóa qua các kích thước tệp
-│   │   └── bias.py               # Phân tích thiên lệch xác suất byte dòng khóa (Mantin–Shamir)
+│   │   └── analysis.py           # Phân tích an toàn (Two-Time Pad, Crib-dragging, Bias & Benchmark)
 │   └── ui/                       # [FRONTEND] - Giao diện NiceGUI
 │       ├── __init__.py
 │       ├── layout.py             # Khung Workbench, Sidebar Hover-to-Expand, Status Bar
