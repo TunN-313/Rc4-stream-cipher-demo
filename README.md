@@ -52,7 +52,6 @@
   3. *Test Case 3*: Vector Wikipedia (`Key = b"Wiki"`, `Plaintext = b"pedia"` $\to$ `1021BF0420`).
   4. *Test Case 4*: Văn bản tiếng Việt có dấu Unicode UTF-8 đối chiếu tính toàn vẹn.
   5. *Test Case 5–8*: Bộ 4 vector chuẩn quốc tế **IETF RFC 6229** tại vị trí offset 0 (40-bit, 64-bit, 128-bit, 256-bit).
-- **Đối chiếu thư viện chuẩn**: So sánh song song kết quả của thuật toán tự xây dựng với `Crypto.Cipher.ARC4` (từ PyCryptodome) đảm bảo độ chính xác tuyệt đối 100%.
 
 ### 📌 Tab 4: Phân Tích Lỗ Hổng Dòng Khóa & Đo Tốc Độ Thực Nghiệm
 - **Tấn công tái sử dụng dòng khóa (Two-Time Pad Attack)**:
@@ -88,7 +87,6 @@ pip install -r requirements.txt
 *Nội dung các gói phụ thuộc chính:*
 - `nicegui>=2.0.0`: Nền tảng xây dựng giao diện web tương tác bằng Python.
 - `nicegui-tabulator>=0.3.1`: Hiển thị bảng kiểm thử tương tác cao cấp.
-- `pycryptodome>=3.20.0`: Thư viện mật mã chuẩn dùng để đối chứng kiểm thử.
 - `pillow>=10.0.0`: Xử lý tệp hình ảnh nhị phân.
 - `pytest>=8.0.0`: Hỗ trợ chạy kịch bản unit test.
 
@@ -99,17 +97,9 @@ python main.py
 Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
 👉 **[http://localhost:8080](http://localhost:8080)**
 
-### 3. Tải & Cài Đặt Ứng Dụng (PWA Desktop / Mobile)
-Ứng dụng hỗ trợ chuẩn **Progressive Web App (PWA)**, cho phép cài đặt trực tiếp thành phần mềm máy tính hoặc ứng dụng điện thoại độc lập:
-- **Trên Máy Tính (Google Chrome, Microsoft Edge, Brave)**:
-  - Khi mở giao diện, rê chuột vào chân thanh Side Menu bên trái và click vào nút **"Cài đặt RC4 Lab"** (hoặc biểu tượng máy tính cài đặt trên thanh địa chỉ URL).
-  - Ứng dụng sẽ tự động tạo icon riêng trên Desktop và Start Menu/Taskbar, mở trong cửa sổ độc lập (**Standalone Window**) không có thanh URL trình duyệt.
-- **Trên Điện Thoại (Android / iOS)**:
-  - Mở trang web trên Chrome/Safari $\to$ Nhấn menu tùy chọn $\to$ Chọn **"Thêm vào màn hình chính" (Add to Home screen / Install app)**.
-
 ---
 
-## 4. Chạy Kiểm Thử Tự Động (Unit Tests)
+## 3. Chạy Kiểm Thử Tự Động (Unit Tests)
 
 Chạy kiểm thử bằng lệnh `unittest` có sẵn trong Python:
 ```bash
@@ -133,46 +123,43 @@ OK
 
 ---
 
-## 5. Cấu Trúc Thư Mục Dự Án
+## 4. Cấu Trúc Thư Mục Dự Án
 
 ```text
 .
 ├── .gitignore                    # Bỏ qua cache, venv và tệp tạm
 ├── README.md                     # Tài liệu hướng dẫn toàn diện dự án
-├── requirements.txt              # Danh sách thư viện phụ thuộc
+├── pytest.ini                    # Cấu hình kiểm thử pytest (asyncio mode)
+├── requirements.txt              # Danh sách thư viện phụ thuộc chính
 ├── main.py                       # Điểm khởi chạy chính ứng dụng NiceGUI (Port 8080)
-├── static/                       # Tài nguyên PWA tĩnh
-│   └── pwa/                      # Web App Manifest, Service Worker & Icons
-│       ├── manifest.webmanifest
-│       ├── sw.js
-│       ├── icon-192.png
-│       ├── icon-512.png
-│       └── favicon.ico
+├── static/                       # Tài nguyên tĩnh
+│   └── favicon.ico               # Biểu tượng ứng dụng
 ├── sample_data/                  # Dữ liệu thử nghiệm mẫu
 │   ├── sample_logo.png           # Tệp ảnh mẫu để kiểm thử mã hóa nhị phân
 │   └── sample_text.txt           # Tệp văn bản mẫu UTF-8
 ├── src/
 │   ├── __init__.py
 │   ├── core/                     # [BACKEND] - Thuật toán thuần Python (Không phụ thuộc UI)
-│   │   ├── __init__.py
+│   │   ├── __init__.py           # Export giao diện API core và các hàm tiện ích
 │   │   ├── models.py             # Hợp đồng dữ liệu chung (Dataclasses)
 │   │   ├── tiny_rc4.py           # Thuật toán TinyRC4 (3-bit, modulo 8)
-│   │   ├── rc4.py                # Thuật toán RC4 chuẩn (8-bit, 256 bytes)
+│   │   ├── rc4.py                # Thuật toán RC4 chuẩn (8-bit, 256 bytes & streaming chunked)
+│   │   ├── keys.py               # Quản lý & sinh khóa RC4/TinyRC4 (CSPRNG secrets)
+│   │   ├── encoding.py           # Chuyển đổi định dạng dữ liệu (Bytes, n-bit, Hex)
 │   │   ├── attack_demo.py        # Logic tấn công Two-Time Pad & Crib-dragging
-│   │   └── benchmark.py          # Đo tốc độ mã hóa qua các kích thước tệp
-│   └── ui/                       # [FRONTEND] - Giao diện
+│   │   ├── benchmark.py          # Đo tốc độ mã hóa qua các kích thước tệp
+│   │   └── bias.py               # Phân tích thiên lệch xác suất byte dòng khóa (Mantin–Shamir)
+│   └── ui/                       # [FRONTEND] - Giao diện NiceGUI
 │       ├── __init__.py
 │       ├── layout.py             # Khung Workbench, Sidebar Hover-to-Expand, Status Bar
-│       ├── pwa.py                # Quản lý Web App Manifest, Service Worker & Install PWA
 │       ├── tab_tiny_rc4.py       # Phân hệ 1: Trực quan hóa TinyRC4 từng bước
 │       ├── tab_rc4_text.py       # Phân hệ 2a: RC4 Văn Bản (UTF-8 & Mảng S 256 byte)
-│       ├── tab_rc4_file.py       # Phân hệ 2b: RC4 Ảnh & Tệp (Pipeline 3 bước)
-│       ├── file_pipeline.py      # Core UI Pipeline: Nạp → Mã hóa → Giải mã
+│       ├── file_pipeline.py      # Core UI Pipeline: Nạp → Mã hóa Streaming → Giải mã
 │       ├── tab_testing.py        # Phân hệ 3: Bảng Tabulator kiểm thử 8/8 & RFC 6229
-│       ├── tab_attack_bench.py   # Phân hệ 4: Mô phỏng Two-Time Pad & Biểu đồ ECharts
+│       ├── tab_attack_bench.py   # Phân hệ 4: Mô phỏng Two-Time Pad, Benchmark & Mantin–Shamir
 │       └── tab_theory.py         # Phân hệ 5: Lý thuyết, sơ đồ Mermaid & So sánh A5/1
-└── tests/
-    └── test_rc4_core.py          # Bộ kiểm thử tự động xác thực chuẩn xác 100%
+└── tests/                        # Bộ kiểm thử tự động toàn diện (pytest)
+    └── test_rc4_lab.py           # Suite kiểm thử gộp toàn diện 6 nhóm (43/43 test cases)
 ```
 
 ---

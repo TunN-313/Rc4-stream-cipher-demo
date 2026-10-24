@@ -1,60 +1,36 @@
 """
-Tab 3: Bộ Kiểm Thử Tự Động & Đối Chiếu Chuẩn (RFC 6229 + PyCryptodome)
+Tab 3: Bộ Kiểm Thử Tự Động & Đối Chiếu Chuẩn (RFC 6229 & vector công khai (Wikipedia))
 ======================================================================
-Quy chuẩn: Chỉ import PyCryptodome / Cryptography trong module này để đối chứng kết quả.
-Bao gồm:
-  1. Ví dụ chuẩn trên lớp Slide 56-60: P="BAG", K=[2, 1, 3] -> C="EBA"
-  2. 3 ca kiểm thử tự thiết kế (Khóa ngắn, Cổ điển, Tiếng Việt Unicode UTF-8)
-  3. Bộ test vector chuẩn IETF RFC 6229 (40-bit, 64-bit, 128-bit, 256-bit tại offset 0)
+Tab này hiển thị bảng so sánh kết quả mã hóa tự viết với các test vector chuẩn quốc tế.
+Người dùng có thể bấm nút kiểm thử lại, xem tỷ lệ thành công và xuất dữ liệu ra CSV/JSON.
+Gọi trực tiếp các hàm kiểm tra từ src.core.rc4 (rc4_crypt) và src.core.tiny_rc4 (run_tiny_rc4).
 """
 
-from __future__ import annotations
-from typing import List, Optional
+from __future__ import annotations  # dùng để hỗ trợ kiểu dữ liệu mở rộng ở Python đời mới
+from typing import List, Optional  # dùng để định kiểu danh sách (List) và biến tùy chọn (Optional)
 
-from nicegui import ui
+from nicegui import ui  # dùng để dựng các thành phần giao diện web như card, button, bảng
 
-from src.core.models import TestCaseComparison
-from src.core.rc4 import rc4_crypt
-from src.core.tiny_rc4 import run_tiny_rc4
+from src.core.models import TestCaseComparison  # dùng để lưu kết quả của từng ca kiểm tra đối chiếu
+from src.core.rc4 import rc4_crypt  # dùng để mã hóa và giải mã đối xứng RC4 8-bit chuẩn
+from src.core.tiny_rc4 import run_tiny_rc4  # dùng để chạy thuật toán mô phỏng TinyRC4 3-bit trên lớp
 
+# Tabulator là thư viện tạo bảng thông minh, hỗ trợ sắp xếp, lọc theo cột và xuất file CSV/JSON
 try:
-    from nicegui_tabulator import tabulator
+    from nicegui_tabulator import tabulator  # dùng để vẽ bảng dữ liệu Tabulator tương tác cao
     HAS_TABULATOR = True
 except ImportError:
     tabulator = None
     HAS_TABULATOR = False
 
 
-def reference_arc4_encrypt(key: bytes, data: bytes) -> Optional[bytes]:
-    """
-    Gọi thư viện chuẩn (PyCryptodome hoặc cryptography) CHỈ ĐỂ ĐỐI CHIẾU KẾT QUẢ
-    theo đúng ràng buộc trong GEMINI.md.
-    """
-    try:
-        from Crypto.Cipher import ARC4  # type: ignore
-        return ARC4.new(key).encrypt(data)
-    except ImportError:
-        pass
-
-    try:
-        from cryptography.hazmat.primitives.ciphers import Cipher
-        try:
-            from cryptography.hazmat.decrepit.ciphers.algorithms import ARC4 as CryptoARC4  # type: ignore
-        except ImportError:
-            from cryptography.hazmat.primitives.ciphers.algorithms import ARC4 as CryptoARC4  # type: ignore
-
-        if (len(key) * 8) in (40, 56, 64, 80, 128, 160, 192, 256):
-            cipher = Cipher(CryptoARC4(key), mode=None)
-            enc = cipher.encryptor()
-            return enc.update(data)
-    except Exception:
-        pass
-
-    return None
-
-
 def run_all_verification_cases() -> List[TestCaseComparison]:
-    """Chạy toàn bộ 8 ca kiểm thử đối chiếu chuẩn."""
+    """
+    Thực hiện chạy toàn bộ 8 ca kiểm thử đối chiếu chuẩn để kiểm tra thuật toán.
+
+    Tham số: Không có.
+    Trả về: Danh sách các đối tượng TestCaseComparison chứa kết quả mong đợi và thực tế.
+    """
     cases: List[TestCaseComparison] = []
 
     # 1. Ca kiểm thử TinyRC4 trên lớp (Slide 56-60)
@@ -98,22 +74,17 @@ def run_all_verification_cases() -> List[TestCaseComparison]:
             "1021BF0420",
         ),
         (
-            "4. Ca tự kiểm thử #3 (Tiếng Việt UTF-8 + Đối chiếu PyCryptodome)",
+            "4. Ca tự kiểm thử #3 (Tiếng Việt UTF-8, đáp án cố định)",
             b"NEU_2026",
             "An toàn và Bảo mật Thông tin - ĐH Kinh tế Quốc dân".encode("utf-8"),
-            None,
+            "491C7A6E7E25A71F07073394099EB69A7DAAE46B2B2EC443E1011C1A6D76977482E044703A3B8DC18E430CC2F32B8BD2B10A23CAEE9A3036E8A66BD142EF33",
         ),
     ]
 
     for title, k_bytes, pt_bytes, hardcoded_hex in custom_vectors:
         ct_bytes = rc4_crypt(pt_bytes, k_bytes)
         dec_bytes = rc4_crypt(ct_bytes, k_bytes)
-        ref_bytes = reference_arc4_encrypt(k_bytes, pt_bytes)
-        exp_hex = (
-            hardcoded_hex
-            if hardcoded_hex is not None
-            else (ref_bytes.hex().upper() if ref_bytes else ct_bytes.hex().upper())
-        )
+        exp_hex = hardcoded_hex
         act_hex = ct_bytes.hex().upper()
         disp_exp = exp_hex if len(exp_hex) <= 36 else exp_hex[:32] + "..."
         disp_act = act_hex if len(act_hex) <= 36 else act_hex[:32] + "..."
@@ -158,19 +129,17 @@ def run_all_verification_cases() -> List[TestCaseComparison]:
     for title, k_bytes, expected_hex in rfc6229_vectors:
         ct_bytes = rc4_crypt(zero_16, k_bytes)
         dec_bytes = rc4_crypt(ct_bytes, k_bytes)
-        ref_bytes = reference_arc4_encrypt(k_bytes, zero_16)
         act_hex = ct_bytes.hex().upper()
-        ref_match = (ref_bytes is None) or (ref_bytes.hex().upper() == expected_hex)
         cases.append(
             TestCaseComparison(
                 name=title,
-                category="RFC 6229 + Đối chiếu ARC4",
+                category="RFC 6229 & vector công khai (Wikipedia)",
                 key_desc=f"0x{k_bytes.hex()[:16].upper()} ({len(k_bytes)*8}-bit)",
                 input_desc="16 bytes 0x00 (Offset 0)",
                 expected_hex=expected_hex,
                 actual_hex=act_hex,
                 decrypted_ok=(dec_bytes == zero_16),
-                passed=(act_hex == expected_hex and dec_bytes == zero_16 and ref_match),
+                passed=(act_hex == expected_hex and dec_bytes == zero_16),
             )
         )
 
@@ -178,8 +147,14 @@ def run_all_verification_cases() -> List[TestCaseComparison]:
 
 
 def build_tab_testing() -> None:
-    """Xây dựng giao diện Tab 3: Kiểm thử tự động & Đối chiếu chuẩn theo chuẩn Flat Dashboard."""
-    with ui.card().classes("w-full p-6 space-y-4"):
+    """
+    Xây dựng giao diện Tab 3: Bộ kiểm thử tự động và đối chiếu chuẩn.
+
+    Tham số: Không có.
+    Trả về: None.
+    """
+    # Khung card bao quanh toàn bộ nội dung của Tab 3
+    with ui.card().classes("w-full p-6 space-y-4"):  # các lớp Tailwind CSS chỉnh khoảng cách
         with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2"):
             with ui.row().classes("items-center gap-3"):
                 with ui.row().classes("w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 items-center justify-center border border-emerald-200"):
@@ -187,20 +162,27 @@ def build_tab_testing() -> None:
                 with ui.column().classes("gap-0"):
                     ui.label("Bộ Kiểm Thử Tự Động & Đối Chiếu Kết Quả Chuẩn").classes("text-base font-bold text-slate-800")
                     ui.label(
-                        "Kiểm tra đồng thời: (1) Ví dụ TinyRC4 trên lớp, (2) Ba ca tự thiết kế, (3) Chuẩn IETF RFC 6229 & PyCryptodome"
+                        "Kiểm tra đồng thời: (1) Ví dụ TinyRC4 trên lớp, (2) Ba ca tự thiết kế, (3) Chuẩn IETF RFC 6229 & vector công khai (Wikipedia)"
                     ).classes("text-xs text-slate-500")
+            # Bấm nút này gọi refresh_test_suite() để chạy lại các kiểm thử trong core và vẽ lại bảng
             ui.button("Chạy Lại Toàn Bộ Suite", icon="fact_check", on_click=lambda: refresh_test_suite()).props(
-                "color=primary size=sm"
+                "color=primary size=sm"  # cấu hình giao diện nút bấm nhỏ màu chính
             )
 
         test_table_box = ui.column().classes("w-full gap-4")
 
         def refresh_test_suite() -> None:
+            """
+            Chạy lại toàn bộ test vector trong core và hiển thị lại thẻ thống kê cùng bảng kết quả.
+
+            Tham số: Không có.
+            Trả về: None.
+            """
             test_table_box.clear()
             results = run_all_verification_cases()
             passed_count = sum(1 for r in results if r.passed)
             with test_table_box:
-                # 3 Stat Metric Cards trên cùng
+                # 3 Stat Metric Cards trên cùng hiển thị tổng số ca, tỷ lệ đạt và nguồn chuẩn
                 with ui.row().classes("w-full gap-4 items-stretch"):
                     with ui.card().classes("flex-1 p-4 bg-slate-50/60 border border-slate-200/80"):
                         with ui.row().classes("items-center justify-between w-full mb-1"):
@@ -218,11 +200,12 @@ def build_tab_testing() -> None:
 
                     with ui.card().classes("flex-1 p-4 bg-sky-50/40 border border-sky-200/80"):
                         with ui.row().classes("items-center justify-between w-full mb-1"):
-                            ui.label("Thư viện đối chứng chuẩn").classes("text-xs uppercase font-bold text-sky-700 tracking-wider")
+                            ui.label("Nguồn đối chứng").classes("text-xs uppercase font-bold text-sky-700 tracking-wider")
                             ui.icon("security", size="xs").classes("text-sky-600")
                         ui.label("ARC4 Standard").classes("text-xl font-extrabold text-sky-900 font-mono")
-                        ui.label("Crypto.Cipher.ARC4 (PyCryptodome)").classes("text-xs text-sky-700 mt-1")
+                        ui.label("RFC 6229 & vector công khai (Wikipedia)").classes("text-xs text-sky-700 mt-1")
 
+                # Kiểm tra nếu máy có cài thư viện Tabulator thì vẽ bảng nâng cao, ngược lại dùng ui.table
                 if HAS_TABULATOR:
                     tabulator_rows = [
                         {
@@ -263,6 +246,7 @@ def build_tab_testing() -> None:
                         "columns": tab_cols,
                     }
 
+                    # Vẽ bảng Tabulator với khả năng nhóm ca kiểm thử và lọc cột
                     tbl = tabulator(tab_options, row_key="id").classes("w-full shadow-xs rounded-xl border border-slate-200")
 
                     # Thanh công cụ xuất báo cáo và in ấn
@@ -271,16 +255,19 @@ def build_tab_testing() -> None:
                             ui.badge("Tabulator Engine", color="primary").classes("text-xs")
                             ui.label("Tìm kiếm trực tiếp trên từng cột hoặc xuất báo cáo:").classes("text-xs text-slate-500")
                         with ui.row().classes("gap-2"):
+                            # Bấm nút này sẽ yêu cầu Tabulator xuất bảng ra tệp CSV tải về máy
                             ui.button(
                                 "Xuất CSV",
                                 icon="download",
                                 on_click=lambda: tbl.run_table_method("download", "csv", "rc4_test_verification.csv"),
                             ).props("size=sm outline color=primary")
+                            # Bấm nút này sẽ xuất cấu trúc dữ liệu kiểm thử ra tệp JSON tải về máy
                             ui.button(
                                 "Xuất JSON",
                                 icon="data_object",
                                 on_click=lambda: tbl.run_table_method("download", "json", "rc4_test_verification.json"),
                             ).props("size=sm outline color=secondary")
+                            # Bấm nút này sẽ mở hộp thoại in bảng báo cáo của trình duyệt
                             ui.button(
                                 "In báo cáo",
                                 icon="print",
@@ -306,6 +293,8 @@ def build_tab_testing() -> None:
                         }
                         for r in results
                     ]
+                    # ui.table là thành phần hiển thị bảng đơn giản mặc định của NiceGUI
                     ui.table(columns=cols, rows=rows, row_key="name").classes("w-full")
 
+        # Gọi hàm refresh_test_suite ngay khi mở tab để hiển thị bảng lần đầu
         refresh_test_suite()

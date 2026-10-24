@@ -1,14 +1,21 @@
-from __future__ import annotations
+"""
+Mô hình dữ liệu lõi của hệ mã RC4 (src/core/models.py)
+Định nghĩa các lớp dữ liệu chứa trạng thái từng bước xáo trộn mảng S và sinh dòng khóa.
+Được gọi bởi: toàn bộ backend (rc4, tiny_rc4, analysis) và frontend (src/ui/).
+Gọi đến: không gọi file nội bộ nào khác, chỉ dùng thư viện chuẩn Python.
+"""
 
-import base64
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from __future__ import annotations  # dùng để hỗ trợ khai báo kiểu dữ liệu hiện đại
+import base64  # dùng để mã hóa nhị phân sang chuỗi văn bản Base64 hiển thị an toàn
+from dataclasses import dataclass, field  # dùng để tạo các lớp chứa dữ liệu tự động sinh hàm khởi tạo
+from typing import Dict, List, Optional, Tuple  # dùng để định nghĩa kiểu dữ liệu danh sách, từ điển
 
 # ==============================================================================
 # HỢP ĐỒNG DỮ LIỆU CHUNG GIỮA FRONTEND & BACKEND (src/core/models.py)
 # ==============================================================================
 
 # Bảng quy đổi 8 chữ cái 3-bit cố định theo Slide 40 & Slide 56-60 (NEU CNTT)
+# Mỗi chữ cái tương ứng một số từ 0 đến 7 (ví dụ: 'A' là 0b000 = 0, 'B' là 0b001 = 1)
 TINY_ALPHABET: Dict[str, int] = {
     "A": 0b000,
     "B": 0b001,
@@ -24,7 +31,10 @@ INV_TINY_ALPHABET: Dict[int, str] = {v: k for k, v in TINY_ALPHABET.items()}
 
 @dataclass
 class KSAStep:
-    """Lưu trạng thái 1 vòng lặp trong giai đoạn Khởi tạo dãy S (KSA)."""
+    """
+    Lưu chi tiết 1 vòng lặp trong giai đoạn KSA (Key-Scheduling Algorithm - xáo mảng S bằng khóa).
+    Ví dụ: tại bước i=0, hoán vị phần tử S[0] với S[j] dựa vào giá trị khóa bí mật.
+    """
     step_i: int
     j_before: int
     s_i_before: int
@@ -36,7 +46,11 @@ class KSAStep:
 
 @dataclass
 class PRGAStep:
-    """Lưu trạng thái 1 bước sinh số giả ngẫu nhiên (PRGA) và phép XOR."""
+    """
+    Lưu 1 bước của giai đoạn PRGA (Pseudo-Random Generation Algorithm - thuật toán sinh số ngẫu nhiên).
+    Tại mỗi bước, thuật toán hoán vị mảng S, trích xuất 1 byte keystream và XOR với byte bản rõ.
+    Ví dụ: bước 0 trích byte dòng khóa k=5 (101) để XOR với ký tự đầu vào P='B' (001) ra C='E' (100).
+    """
     step_idx: int
     i_val: int
     j_val: int
@@ -54,7 +68,11 @@ class PRGAStep:
 
 @dataclass
 class TinyRC4Result:
-    """Kết quả toàn diện của TinyRC4 (3-bit, mảng S và T gồm 8 phần tử 0..7)."""
+    """
+    Kết quả mô phỏng toàn diện TinyRC4 (mô hình học tập 3-bit, mảng S gồm 8 phần tử từ 0 đến 7).
+    Chứa lịch sử từng bước KSA và PRGA để hiển thị bảng trực quan trên giao diện lớp học.
+    Ví dụ: mã hóa bản rõ 'BAG' với khóa [2, 1, 3] tạo ra bản mã 'EBA'.
+    """
     input_text: str
     input_bits: str
     key_list: List[int]
@@ -72,7 +90,11 @@ class TinyRC4Result:
 
 @dataclass
 class FullRC4Result:
-    """Kết quả thực thi RC4 đầy đủ (8-bit, mảng S và T gồm 256 phần tử 0..255)."""
+    """
+    Kết quả thực thi thuật toán RC4 chuẩn quốc tế (8-bit, mảng S gồm 256 phần tử từ 0 đến 255).
+    Chứa dữ liệu bản mã ra, dòng khóa xem trước (keystream preview) và thời gian thực thi.
+    Ví dụ: mã hóa b'Plaintext' với khóa b'Key' ra chuỗi byte hex 'BBF316E8D940AF0AD3'.
+    """
     input_bytes: bytes
     key_bytes: bytes
     output_bytes: bytes
@@ -82,16 +104,21 @@ class FullRC4Result:
 
     @property
     def output_hex(self) -> str:
+        """Chuyển đổi dữ liệu bản mã đầu ra thành chuỗi Hex viết hoa (ví dụ: b'\\xab' -> 'AB')."""
         return self.output_bytes.hex().upper()
 
     @property
     def output_base64(self) -> str:
+        """Mã hóa bản mã thành chuỗi Base64 an toàn cho truyền tải web thương mại điện tử."""
         return base64.b64encode(self.output_bytes).decode("ascii")
 
 
 @dataclass
 class TestCaseComparison:
-    """Kết quả 1 ca kiểm thử và đối chiếu với chuẩn (Slide / RFC 6229 / PyCryptodome)."""
+    """
+    Kết quả đối chiếu 1 ca kiểm thử thuật toán với đáp án chuẩn lý thuyết (Slide NEU hoặc RFC 6229).
+    So sánh giá trị hex tạo ra với giá trị hex kỳ vọng để xác nhận độ chính xác 100%.
+    """
     name: str
     category: str
     key_desc: str
@@ -103,8 +130,24 @@ class TestCaseComparison:
 
 
 @dataclass
+class CribCandidate:
+    """
+    Một ứng viên giải mã khi thực hiện thám mã đoán từ (crib-dragging) trên hai bản mã trùng khóa.
+    Chứa vị trí pos trượt từ, từ đoán trước, chuỗi giải mã thu được và điểm khả thi đọc được.
+    """
+    pos: int
+    crib: str
+    recovered: str
+    score: float
+    matches_real: bool
+
+
+@dataclass
 class KeystreamAttackResult:
-    """Kết quả mô phỏng tấn công dùng lại dòng khóa (Two-Time Pad / Keystream Reuse)."""
+    """
+    Kết quả phân tích tấn công Two-Time Pad (dùng lại dòng khóa cho hai bản rõ P1 và P2 khác nhau).
+    Khai thác tính chất C1 ^ C2 = P1 ^ P2 để triệt tiêu hoàn toàn khóa bí mật K.
+    """
     p1_text: str
     p2_text: str
     key_text: str
@@ -115,40 +158,9 @@ class KeystreamAttackResult:
     streams_equal: bool
     crib_word: str
     crib_matches: List[Tuple[int, str, str]] = field(default_factory=list)
+    crib_candidates: List[CribCandidate] = field(default_factory=list)
+    crib_in: str = "p1"
+    len_p1: int = 0
+    len_p2: int = 0
 
 
-def get_classroom_mock_tiny_rc4() -> TinyRC4Result:
-    """
-    Hàm Mock dữ liệu mẫu chuẩn Slide 56-60 (BAG / K=[2,1,3] -> EBA)
-    Giúp Frontend kiểm thử hiển thị ngay cả khi Backend chưa cài đặt xong.
-    """
-    ksa_mock = [
-        KSAStep(0, 0, 0, 2, 2, "Swap(S[0], S[2])", [2, 1, 0, 3, 4, 5, 6, 7]),
-        KSAStep(1, 2, 1, 1, 4, "Swap(S[1], S[4])", [2, 4, 0, 3, 1, 5, 6, 7]),
-        KSAStep(2, 4, 0, 3, 7, "Swap(S[2], S[7])", [2, 4, 7, 3, 1, 5, 6, 0]),
-        KSAStep(3, 7, 3, 2, 4, "Swap(S[3], S[4])", [2, 4, 7, 1, 3, 5, 6, 0]),
-        KSAStep(4, 4, 3, 1, 0, "Swap(S[4], S[0])", [3, 4, 7, 1, 2, 5, 6, 0]),
-        KSAStep(5, 0, 5, 3, 0, "Swap(S[5], S[0])", [5, 4, 7, 1, 2, 3, 6, 0]),
-        KSAStep(6, 0, 6, 2, 0, "Swap(S[6], S[0])", [6, 4, 7, 1, 2, 3, 5, 0]),
-        KSAStep(7, 0, 0, 1, 1, "Swap(S[7], S[1])", [6, 0, 7, 1, 2, 3, 5, 4]),
-    ]
-    prga_mock = [
-        PRGAStep(0, 1, 0, 6, 5, "101", 1, "001", 4, "100", [6, 0, 7, 1, 2, 3, 5, 4], "B", "E"),
-        PRGAStep(1, 2, 7, 3, 1, "001", 0, "000", 1, "001", [6, 4, 7, 1, 2, 3, 5, 0], "A", "B"),
-        PRGAStep(2, 3, 0, 0, 6, "110", 6, "110", 0, "000", [1, 4, 7, 6, 2, 3, 5, 0], "G", "A"),
-    ]
-    return TinyRC4Result(
-        input_text="BAG",
-        input_bits="001 000 110",
-        key_list=[2, 1, 3],
-        initial_s=[0, 1, 2, 3, 4, 5, 6, 7],
-        initial_t=[2, 1, 3, 2, 1, 3, 2, 1],
-        ksa_steps=ksa_mock,
-        final_ksa_s=[6, 0, 7, 1, 2, 3, 5, 4],
-        prga_steps=prga_mock,
-        keystream_list=[5, 1, 6],
-        keystream_bits="101 001 110",
-        output_list=[4, 1, 0],
-        output_bits="100 001 000",
-        output_text="EBA",
-    )

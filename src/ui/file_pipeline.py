@@ -1,31 +1,32 @@
+"""Quy trình xử lý tệp tin và hình ảnh với hệ mã dòng RC4 (src/ui/file_pipeline.py).
+
+File này được gọi bởi tab_rc4_file hoặc layout.py để dựng tab 'Ảnh & Tệp'.
+File gọi đến module src/core/rc4.py (hàm rc4_crypt_chunks) để mã hóa/giải mã theo khối,
+gọi src/core/keys.py để sinh và kiểm tra khóa, và dùng thư viện PIL để thẩm định ảnh.
+Chia quy trình thành 3 bước độc lập: Nạp tệp -> Mã hóa Streaming -> Giải mã & Đối chiếu.
 """
-Mô-đun Quy Trình Xử Lý Tệp RC4 (src/ui/file_pipeline.py)
-======================================================
-Quy trình 3 bước tách rời cho Tab 2:
-1. Bước 1 – Nạp: Tải lên tệp bất kỳ (.txt, .png, .jpg, .rc4...) hoặc chọn dữ liệu mẫu.
-2. Bước 2 – Mã hóa: Mã hóa theo khối với rc4_crypt_chunks, trực quan hóa ảnh nhiễu.
-3. Bước 3 – Giải mã: Giải mã và đối chiếu toàn vẹn SHA-256, kiểm định ảnh với PIL.
-"""
 
-from __future__ import annotations
-import asyncio
-import base64
-import hashlib
-import inspect
-import io
-import math
-from pathlib import Path
-import time
-from typing import Any, Dict, Optional, Tuple
+from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
+import asyncio  # dùng để chạy tác vụ bất đồng bộ và tạo khoảng nghỉ cập nhật giao diện
+import base64  # dùng để mã hóa dữ liệu nhị phân sang chuỗi Base64 nhúng vào thẻ ảnh HTML
+import hashlib  # dùng để tính mã băm SHA-256 (dấu vân tay duy nhất của dữ liệu)
+import inspect  # dùng để kiểm tra tính chất của đối tượng (ví dụ: hàm coroutine bất đồng bộ)
+import io  # dùng để tạo luồng dữ liệu byte trong bộ nhớ (BytesIO)
+import math  # dùng để tính toán kích thước ảnh lưới vuông (isqrt)
+from pathlib import Path  # dùng để đọc tệp tin mẫu từ hệ thống tệp
+import time  # dùng để đo thời gian thực thi mã hóa chính xác (perf_counter)
+from typing import Any, Dict, Optional, Tuple  # dùng để khai báo gợi ý kiểu dữ liệu
 
-from nicegui import ui
-from PIL import Image
+from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
+from PIL import Image  # dùng để đọc, kiểm định định dạng ảnh và tạo ảnh nhiễu nhị phân
 
-from src.core.rc4 import rc4_crypt_chunks
+from src.core.keys import khoa_tu_chuoi, khoa_tu_hex, sinh_khoa_rc4  # file nội bộ: sinh và phân tích khóa
+from src.core.encoding import bytes_sang_hex  # file nội bộ: chuyển đổi mảng byte sang chuỗi Hex
+from src.core.rc4 import rc4_crypt_chunks  # file nội bộ: generator mã hóa RC4 theo từng khối nhỏ
 
-MAX_BYTES: int = 8 * 1024 * 1024  # 8 MiB
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
-FALLBACK_1X1_PNG = (
+MAX_BYTES: int = 8 * 1024 * 1024  # Giới hạn kích thước tệp tối đa cho phép tải lên là 8 MiB
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}  # Tập các đuôi tệp ảnh
+FALLBACK_1X1_PNG = (  # Ảnh mẫu PNG 1x1 pixel dự phòng khi không tìm thấy tệp ảnh trên đĩa
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
     b"\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00"
     b"\x02\x00\x01H\xaf\xa4q\x00\x00\x00\x00IEND\xaeB`\x82"
@@ -33,7 +34,15 @@ FALLBACK_1X1_PNG = (
 
 
 def get_image_mime(data: bytes) -> str:
-    """Xác định MIME type từ magic bytes để tránh gắn cứng image/png."""
+    """Xác định kiểu MIME (định dạng ảnh) dựa trên các byte mở đầu (magic bytes).
+
+    Tham số:
+        data: Dữ liệu nhị phân của tệp cần kiểm tra định dạng.
+    Giá trị trả về:
+        Chuỗi MIME type chuẩn (ví dụ: 'image/png', 'image/jpeg', hoặc 'application/octet-stream').
+    Ví dụ:
+        get_image_mime(b"\\x89PNG\\r\\n\\x1a\\n...") -> "image/png"
+    """
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
     if data.startswith(b"\xff\xd8\xff"):
@@ -46,7 +55,17 @@ def get_image_mime(data: bytes) -> str:
 
 
 def validate_image(data: bytes) -> Tuple[bool, str]:
-    """Kiểm tra tính hợp lệ của ảnh bằng PIL Image.open + load."""
+    """Kiểm tra tệp tin có phải là ảnh hợp lệ hay không bằng thư viện PIL (Image.open + load).
+
+    PIL.Image: thư viện chuyên xử lý và đọc thông tin cấu trúc, kích thước, định dạng tệp ảnh.
+
+    Tham số:
+        data: Dữ liệu nhị phân cần thẩm định tính hợp lệ.
+    Giá trị trả về:
+        Bộ (is_valid, mime_type) gồm cờ True/False và chuỗi MIME type tương ứng.
+    Ví dụ:
+        validate_image(sample_png_bytes) -> (True, "image/png")
+    """
     if not data:
         return False, ""
     try:
@@ -69,7 +88,15 @@ def validate_image(data: bytes) -> Tuple[bool, str]:
 
 
 def create_noise_image_b64(data: bytes) -> str:
-    """Tạo ảnh nhiễu grayscale từ tối đa 128 KB dữ liệu bytes."""
+    """Tạo ảnh nhiễu mức xám (grayscale) từ dữ liệu byte và chuyển thành chuỗi Base64.
+
+    Tham số:
+        data: Mảng byte bản mã hoặc dữ liệu bất kỳ cần trực quan hóa thành ảnh nhiễu.
+    Giá trị trả về:
+        Chuỗi ảnh PNG mã hóa Base64 dùng để nhúng trực tiếp vào thẻ img giao diện web.
+    Ví dụ:
+        create_noise_image_b64(b"...") -> "iVBORw0KGgoAAAANSUhEUgAA..."
+    """
     if not data:
         return ""
     sample = data[:131072]
@@ -90,7 +117,14 @@ def create_noise_image_b64(data: bytes) -> str:
 
 
 def get_default_sample_bytes() -> bytes:
-    """Đọc ảnh mẫu logo từ sample_data hoặc fallback ảnh 1x1 hợp lệ."""
+    """Đọc tệp ảnh mẫu logo từ thư mục sample_data hoặc trả về ảnh PNG 1x1 thay thế.
+
+    Tham số: Không có.
+    Giá trị trả về:
+        Mảng bytes chứa nội dung tệp ảnh mẫu.
+    Ví dụ:
+        len(get_default_sample_bytes()) > 0
+    """
     sample_path = Path("sample_data") / "sample_logo.png"
     if sample_path.exists():
         try:
@@ -101,7 +135,14 @@ def get_default_sample_bytes() -> bytes:
 
 
 def get_default_text_bytes() -> bytes:
-    """Đọc tệp text mẫu từ sample_data hoặc fallback."""
+    """Đọc tệp văn bản mẫu từ thư mục sample_data hoặc trả về chuỗi UTF-8 mặc định.
+
+    Tham số: Không có.
+    Giá trị trả về:
+        Mảng bytes chứa văn bản tiếng Việt mẫu.
+    Ví dụ:
+        get_default_text_bytes().startswith(b"H\\xe1\\xbb\\x87")
+    """
     txt_path = Path("sample_data") / "sample_text.txt"
     if txt_path.exists():
         try:
@@ -112,8 +153,15 @@ def get_default_text_bytes() -> bytes:
 
 
 def build_file_pipeline() -> None:
-    """Xây dựng giao diện Quy trình Xử lý Tệp (File Pipeline) 3 bước tách rời."""
-    # Trạng thái dữ liệu của pipeline
+    """Xây dựng giao diện Quy trình Xử lý Tệp (File Pipeline) 3 bước tách rời.
+
+    Tham số: Không có.
+    Giá trị trả về: Không có (dựng các thành phần trực tiếp lên giao diện NiceGUI).
+    Ví dụ: build_file_pipeline()
+    """
+    # Biến trạng thái state: lưu trữ toàn bộ dữ liệu tạm thời của phiên làm việc gồm:
+    # tên tệp (name), byte bản rõ gốc (original), byte bản mã (encrypted), byte sau giải mã (decrypted),
+    # và cờ is_rc4_loaded (xác định tệp nạp vào là bản mã .rc4 có sẵn hay tệp gốc).
     file_state: Dict[str, Any] = {
         "name": "sample_logo.png",
         "original": None,
@@ -122,8 +170,10 @@ def build_file_pipeline() -> None:
         "is_rc4_loaded": False,
     }
 
+    # Cờ busy: cờ kiểm soát ngăn người dùng bấm thao tác khi tiến trình đang xử lý
     is_busy: bool = False
 
+    # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
     with ui.column().classes("w-full space-y-4"):
         # Header trên cùng (tên quy trình, badge, switch "Trình diễn chậm")
         with ui.card().classes("w-full p-4 border border-slate-200/80 shadow-sm"):
@@ -142,17 +192,19 @@ def build_file_pipeline() -> None:
                     slow_switch = ui.switch("Trình diễn chậm", value=True).props("dense").classes("text-xs")
                     ui.badge("RC4 Chunked • 3 Bước Tách Rời", color="accent").classes("text-xs font-semibold px-2 py-1")
 
-        # Div grid chứa 3 ui.card, mỗi card một bước
+        # Div grid chứa 3 ui.card, mỗi card một bước độc lập
         with ui.element("div").classes("grid grid-cols-1 xl:grid-cols-3 gap-4 w-full items-start"):
             # ==================================================================
-            # CARD 1: BƯỚC 1 – NẠP TỆP (LOAD)
+            # BƯỚC 1 – NẠP TỆP (LOAD)
+            # Nhận: Tệp tin người dùng tải lên từ máy tính hoặc dữ liệu mẫu có sẵn.
+            # Trả về: Dữ liệu bytes lưu vào file_state, cùng thông số kích thước, SHA-256 và ảnh xem trước.
             # ==================================================================
             with ui.card().classes("w-full p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3"):
                 with ui.row().classes("w-full items-center gap-2"):
                     ui.badge("1", color="primary").classes("rounded-full w-6 h-6 text-xs flex items-center justify-center")
                     ui.label("Bước 1 – Nạp Tệp Dữ Liệu").classes("text-sm font-bold text-slate-800")
 
-                # Khu vực upload tương thích NiceGUI 2.x & 3.x
+                # ui.upload: thành phần giao diện cho phép kéo thả hoặc chọn tệp tin từ máy tính
                 ui_upload_element = ui.upload(
                     label="Kéo thả hoặc bấm để nạp tệp (tối đa 8 MiB)",
                     auto_upload=True,
@@ -169,7 +221,10 @@ def build_file_pipeline() -> None:
                 step1_info_box = ui.column().classes("w-full gap-2")
 
             # ==================================================================
-            # CARD 2: BƯỚC 2 – MÃ HÓA (ENCRYPT)
+            # BƯỚC 2 – MÃ HÓA RC4 (ENCRYPT)
+            # Nhận: Byte bản rõ gốc từ file_state['original'] và chuỗi khóa mã hóa từ người dùng.
+            # Trả về: Byte bản mã lưu vào file_state['encrypted'], ảnh nhiễu trực quan và chuỗi hex 48 byte đầu.
+            # Vì sao chia khối (chunk): mã hóa từng khối nhỏ để cập nhật % tiến trình và tránh đơ giao diện web.
             # ==================================================================
             with ui.card().classes("w-full p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3"):
                 with ui.row().classes("w-full items-center justify-between flex-wrap gap-1"):
@@ -178,14 +233,20 @@ def build_file_pipeline() -> None:
                         ui.label("Bước 2 – Mã Hóa RC4 (Chunked Streaming)").classes("text-sm font-bold text-slate-800")
                     enc_status_label = ui.label("").classes("text-xs font-mono text-slate-600")
 
-                enc_key_input = ui.input(
-                    label="Khóa mã hóa (UTF-8, 1–256 byte)",
-                    value="RC4-File-Encryption-Key-2026",
-                ).classes("w-full")
+                with ui.row().classes("w-full items-center gap-2"):
+                    enc_key_input = ui.input(
+                        label="Khóa mã hóa (UTF-8, 1–256 byte)",
+                        value="RC4-File-Encryption-Key-2026",
+                    ).classes("flex-1")
+                    key_mode_toggle = ui.toggle(["UTF-8", "Hex"], value="UTF-8").props("dense no-caps")
+                    btn_rand_key = ui.button("Khóa ngẫu nhiên", icon="casino").props("outline size=sm color=primary")
+
+                enc_key_len_label = ui.label("").classes("text-xs text-slate-500 font-mono -mt-2")
 
                 with ui.row().classes("w-full items-center gap-3"):
                     btn_encrypt = ui.button("Mã hóa", icon="lock").props("color=primary size=sm")
 
+                # ui.linear_progress: thanh tiến trình ngang hiển thị tỷ lệ % công việc đã hoàn thành
                 enc_progress = ui.linear_progress(value=0.0, show_value=False).props("instant-feedback stripe rounded").classes("w-full h-2")
 
                 # Khung hiển thị kết quả bản mã
@@ -196,7 +257,9 @@ def build_file_pipeline() -> None:
                     btn_download_rc4 = ui.button("Tải bản mã (.rc4)", icon="download").props("color=primary size=sm")
 
             # ==================================================================
-            # CARD 3: BƯỚC 3 – GIẢI MÃ & ĐỐI CHIẾU (DECRYPT & INTEGRITY)
+            # BƯỚC 3 – GIẢI MÃ & ĐỐI CHIẾU (DECRYPT & INTEGRITY)
+            # Nhận: Byte bản mã từ file_state['encrypted'] và khóa giải mã từ người dùng.
+            # Trả về: Byte giải mã lưu vào file_state['decrypted'], kết quả so khớp SHA-256 và ảnh khôi phục.
             # ==================================================================
             with ui.card().classes("w-full p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3"):
                 with ui.row().classes("w-full items-center justify-between flex-wrap gap-1"):
@@ -211,6 +274,8 @@ def build_file_pipeline() -> None:
                         value="RC4-File-Encryption-Key-2026",
                     ).classes("flex-1")
                     btn_fill_wrong_key = ui.button("Điền khóa sai", icon="shuffle").props("outline size=sm color=amber-9")
+
+                dec_key_len_label = ui.label("").classes("text-xs text-slate-500 font-mono -mt-2")
 
                 with ui.row().classes("w-full items-center gap-3"):
                     btn_decrypt = ui.button("Giải mã", icon="lock_open").props("color=positive size=sm")
@@ -227,25 +292,93 @@ def build_file_pipeline() -> None:
                     btn_download_dec = ui.button("Tải tệp giải mã", icon="verified").props("color=positive size=sm")
 
         # ----------------------------------------------------------------------
+        # CẬP NHẬT ĐỘ DÀI KHÓA VÀ SINH KHÓA NGẪU NHIÊN
+        # ----------------------------------------------------------------------
+        def update_enc_key_len() -> None:
+            """Cập nhật nhãn hiển thị số lượng byte của khóa mã hóa.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
+            try:
+                if key_mode_toggle.value == "Hex":
+                    k_b = khoa_tu_hex(enc_key_input.value or "")
+                else:
+                    k_b = khoa_tu_chuoi(enc_key_input.value or "")
+                enc_key_len_label.text = f"Độ dài khóa: {len(k_b)} byte"
+            except ValueError:
+                enc_key_len_label.text = "Khóa không hợp lệ"
+
+        def update_dec_key_len() -> None:
+            """Cập nhật nhãn hiển thị số lượng byte của khóa giải mã.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
+            try:
+                if key_mode_toggle.value == "Hex":
+                    k_b = khoa_tu_hex(dec_key_input.value or "")
+                else:
+                    k_b = khoa_tu_chuoi(dec_key_input.value or "")
+                dec_key_len_label.text = f"Độ dài khóa: {len(k_b)} byte"
+            except ValueError:
+                dec_key_len_label.text = "Khóa không hợp lệ"
+
+        def on_random_key() -> None:
+            """Sinh ngẫu nhiên khóa 16 byte (128-bit) bằng CSPRNG và điền vào 2 ô nhập.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
+            rand_bytes = sinh_khoa_rc4(16)
+            rand_hex = bytes_sang_hex(rand_bytes)
+            key_mode_toggle.value = "Hex"
+            enc_key_input.value = rand_hex
+            dec_key_input.value = rand_hex
+            update_enc_key_len()
+            update_dec_key_len()
+
+        btn_rand_key.on_click(on_random_key)
+        enc_key_input.on_value_change(update_enc_key_len)
+        enc_key_input.on("input", update_enc_key_len)
+        dec_key_input.on_value_change(update_dec_key_len)
+        dec_key_input.on("input", update_dec_key_len)
+        key_mode_toggle.on_value_change(lambda: (update_enc_key_len(), update_dec_key_len()))
+        update_enc_key_len()
+        update_dec_key_len()
+
+        # ----------------------------------------------------------------------
         # CÁC HÀM XỬ LÝ GIAO DIỆN & LOGIC
         # ----------------------------------------------------------------------
 
         def clear_step2_and_step3() -> None:
-            """Xóa kết quả downstream của Bước 2 và Bước 3 khi nạp tệp mới."""
+            """Xóa kết quả downstream của Bước 2 và Bước 3 khi nạp tệp mới.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             enc_progress.value = 0.0
             enc_status_label.text = ""
             step2_result_box.clear()
             clear_step3()
 
         def clear_step3() -> None:
-            """Xóa kết quả downstream của Bước 3 khi mã hóa lại."""
+            """Xóa kết quả downstream của Bước 3 khi mã hóa lại.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             dec_progress.value = 0.0
             dec_status_label.text = ""
             step3_result_box.clear()
             file_state["decrypted"] = None
 
         def render_step1_preview() -> None:
-            """Hiển thị tên, kích thước, SHA-256 và bản xem trước Bước 1."""
+            """Hiển thị tên, kích thước, SHA-256 và bản xem trước Bước 1.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             step1_info_box.clear()
             filename = file_state["name"]
             is_rc4 = file_state["is_rc4_loaded"]
@@ -255,6 +388,7 @@ def build_file_pipeline() -> None:
                 return
 
             data_len = len(data)
+            # hashlib.sha256: dấu vân tay của dữ liệu (chuỗi băm cố định 64 ký tự hex)
             sha16 = hashlib.sha256(data).hexdigest()[:16]
 
             with step1_info_box:
@@ -295,7 +429,11 @@ def build_file_pipeline() -> None:
                         )
 
         def render_step2_preview() -> None:
-            """Hiển thị kết quả mã hóa: ảnh nhiễu, 48 byte hex đầu, SHA-256, % byte khác."""
+            """Hiển thị kết quả mã hóa: ảnh nhiễu, 48 byte hex đầu, SHA-256, % byte khác.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             step2_result_box.clear()
             ciphertext = file_state.get("encrypted")
             if not ciphertext:
@@ -336,7 +474,11 @@ def build_file_pipeline() -> None:
                     ui.label(f"SHA-256 bản mã: {c_sha}").classes("font-mono text-xs text-slate-600 break-all")
 
         def render_step3_preview() -> None:
-            """Hiển thị kết quả giải mã, đối chiếu toàn vẹn và kiểm định ảnh."""
+            """Hiển thị kết quả giải mã, đối chiếu toàn vẹn và kiểm định ảnh.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             step3_result_box.clear()
             decrypted = file_state.get("decrypted")
             if decrypted is None:
@@ -391,8 +533,15 @@ def build_file_pipeline() -> None:
                     )
 
         async def process_loaded_content(name: str, content: bytes) -> None:
-            """Xử lý nạp dữ liệu tệp vào pipeline."""
+            """Xử lý nạp dữ liệu tệp vào pipeline và cập nhật giao diện xem trước.
+
+            Tham số:
+                name: Tên tệp tin được nạp (ví dụ 'sample_logo.png' hoặc 'secret.rc4').
+                content: Mảng byte nhị phân của tệp tin.
+            Giá trị trả về: Không có.
+            """
             if len(content) > MAX_BYTES:
+                # ui.notify: thông báo nhỏ dạng pop-up hiện lên ở góc màn hình rồi tự biến mất
                 ui.notify(f"Kích thước tệp quá lớn ({len(content):,} bytes > 8 MiB)!", type="warning")
                 return
 
@@ -420,7 +569,12 @@ def build_file_pipeline() -> None:
                 ui.notify(f"Đã nạp tệp: {name} ({len(content):,} bytes)", type="positive")
 
         async def handle_upload(e: Any) -> None:
-            """Handler upload bất đồng bộ tương thích cả NiceGUI 2.x và 3.x."""
+            """Hàm xử lý sự kiện khi người dùng kéo thả hoặc tải tệp lên giao diện.
+
+            Tham số:
+                e: Đối tượng sự kiện upload của NiceGUI chứa dữ liệu tệp tin.
+            Giá trị trả về: Không có.
+            """
             try:
                 # 1. Trích xuất tên tệp
                 name = "uploaded_file"
@@ -458,7 +612,12 @@ def build_file_pipeline() -> None:
                 ui.notify(f"Lỗi khi nạp tệp: {exc}", type="negative")
 
         async def load_sample_file(kind: str) -> None:
-            """Nạp tệp mẫu (ảnh logo hoặc text Tiếng Việt)."""
+            """Nạp tệp mẫu có sẵn của dự án (ảnh logo trường hoặc văn bản UTF-8).
+
+            Tham số:
+                kind: Chuỗi định danh loại tệp mẫu ('logo' hoặc 'txt').
+            Giá trị trả về: Không có.
+            """
             if kind == "logo":
                 await process_loaded_content("sample_logo.png", get_default_sample_bytes())
             else:
@@ -474,6 +633,15 @@ def build_file_pipeline() -> None:
         # BƯỚC 2: MÃ HÓA
         # ----------------------------------------------------------------------
         async def run_encryption() -> None:
+            """Thực hiện luồng mã hóa RC4 theo khối streaming và cập nhật tiến trình.
+
+            Hàm chia dữ liệu thành nhiều khối nhỏ (chunk) bằng generator rc4_crypt_chunks,
+            sau mỗi khối sẽ nhường quyền CPU (asyncio.sleep) để giao diện kịp cập nhật
+            thanh tiến trình và tránh làm treo trình duyệt.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             nonlocal is_busy
             if is_busy:
                 return
@@ -486,9 +654,13 @@ def build_file_pipeline() -> None:
                     ui.notify("Chưa có dữ liệu bản gốc để mã hóa. Vui lòng nạp tệp ở Bước 1.", type="warning")
                 return
 
-            key_bytes = enc_key_input.value.encode("utf-8")
-            if len(key_bytes) < 1 or len(key_bytes) > 256:
-                ui.notify("Khóa RC4 phải có độ dài từ 1 đến 256 byte UTF-8.", type="warning")
+            try:
+                if key_mode_toggle.value == "Hex":
+                    key_bytes = khoa_tu_hex(enc_key_input.value or "")
+                else:
+                    key_bytes = khoa_tu_chuoi(enc_key_input.value or "")
+            except ValueError as e:
+                ui.notify(str(e), type="negative")
                 return
 
             is_busy = True
@@ -517,6 +689,7 @@ def build_file_pipeline() -> None:
                     processed += len(chunk)
                     enc_progress.value = processed / total if total > 0 else 1.0
 
+                    # asyncio.sleep: tạm dừng trong nền để trình duyệt kịp cập nhật giao diện
                     if slow_switch.value:
                         await asyncio.sleep(0.03)
                     else:
@@ -545,13 +718,30 @@ def build_file_pipeline() -> None:
         # BƯỚC 3: GIẢI MÃ
         # ----------------------------------------------------------------------
         def fill_wrong_key() -> None:
-            """Nối thêm ký tự 'x' vào ô nhập khóa giải mã để giả lập sai khóa."""
-            dec_key_input.value = (dec_key_input.value or "") + "x"
-            ui.notify("Đã điền khóa sai (thêm 'x')", type="warning")
+            """Tự động điền sai khóa giải mã để người dùng kiểm chứng cảnh báo lỗi.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
+            if key_mode_toggle.value == "Hex":
+                dec_key_input.value = (dec_key_input.value or "") + "00"
+                ui.notify("Đã điền khóa sai (thêm '00')", type="warning")
+            else:
+                dec_key_input.value = (dec_key_input.value or "") + "x"
+                ui.notify("Đã điền khóa sai (thêm 'x')", type="warning")
+            update_dec_key_len()
 
         btn_fill_wrong_key.on_click(fill_wrong_key)
 
         async def run_decryption() -> None:
+            """Thực hiện giải mã RC4 theo khối, đối chiếu SHA-256 và kiểm định ảnh.
+
+            Hàm giải mã dòng khóa đối xứng, sau đó so sánh mã băm SHA-256 với tệp gốc ban đầu
+            và gọi PIL.Image để thẩm định xem dữ liệu giải mã có tái tạo được ảnh chuẩn không.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             nonlocal is_busy
             if is_busy:
                 return
@@ -561,9 +751,13 @@ def build_file_pipeline() -> None:
                 ui.notify("Chưa có bản mã để giải mã. Hãy mã hóa ở Bước 2 hoặc nạp tệp .rc4 ở Bước 1.", type="warning")
                 return
 
-            key_bytes = dec_key_input.value.encode("utf-8")
-            if len(key_bytes) < 1 or len(key_bytes) > 256:
-                ui.notify("Khóa giải mã phải có độ dài từ 1 đến 256 byte UTF-8.", type="warning")
+            try:
+                if key_mode_toggle.value == "Hex":
+                    key_bytes = khoa_tu_hex(dec_key_input.value or "")
+                else:
+                    key_bytes = khoa_tu_chuoi(dec_key_input.value or "")
+            except ValueError as e:
+                ui.notify(str(e), type="negative")
                 return
 
             is_busy = True
@@ -591,6 +785,7 @@ def build_file_pipeline() -> None:
                     processed += len(chunk)
                     dec_progress.value = processed / total if total > 0 else 1.0
 
+                    # asyncio.sleep: nhường luồng xử lý để trình duyệt render giao diện
                     if slow_switch.value:
                         await asyncio.sleep(0.03)
                     else:
@@ -617,19 +812,31 @@ def build_file_pipeline() -> None:
 
         # Download handlers
         def download_ciphertext() -> None:
+            """Kích hoạt tải tệp bản mã (.rc4) về máy tính người dùng.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             c = file_state.get("encrypted")
             if not c:
                 ui.notify("Chưa có dữ liệu bản mã để tải về.", type="warning")
                 return
             download_name = f"{file_state['name']}.rc4"
+            # ui.download: kích hoạt trình duyệt tự động tải tệp tin về máy tính người dùng
             ui.download(c, download_name)
 
         def download_decrypted() -> None:
+            """Kích hoạt tải tệp tin đã giải mã về máy tính người dùng.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
             d = file_state.get("decrypted")
             if not d:
                 ui.notify("Chưa có dữ liệu tệp giải mã để tải về.", type="warning")
                 return
             download_name = f"decrypted_{file_state['name']}"
+            # ui.download: kích hoạt trình duyệt tự động tải tệp tin về máy tính người dùng
             ui.download(d, download_name)
 
         btn_download_rc4.on_click(download_ciphertext)

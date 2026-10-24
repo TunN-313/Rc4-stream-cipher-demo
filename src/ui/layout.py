@@ -1,28 +1,28 @@
-"""
-Bố Cục Chính Cryptographic Workbench (src/ui/layout.py)
-=========================================================
-Thiết kế theo chuẩn SaaS Application Shell với Hover-to-Expand Side Menu:
-- Side Menu (Trái): Lướt chuột tự mở rộng (w-16 -> w-64), 6 mục điều hướng có Active State
-  Đảm bảo flex-nowrap và max-w-0 khi thu gọn, triệt tiêu 100% hiện tượng đè text/icon.
-- Main Content (Giữa): Mặc định mở Tab 1 (TinyRC4), ẩn thanh tabs ngang, nội dung đẩy sát lên trên cùng
-- Right Sidebar (Phải): Bảng tra cứu S-Box, Quy đổi 3-bit, Công thức KaTeX
-- Bottom Bar (Dưới): Thanh trạng thái hệ thống cố định chân trang
+"""Bố cục giao diện chính của ứng dụng RC4 Lab (src/ui/layout.py).
+
+File này được gọi bởi main.py để khởi tạo cấu trúc màn hình hoàn chỉnh.
+File gọi đến các hàm build_tab_* trong thư mục src/ui/ để dựng từng tab chức năng:
+mô hình TinyRC4, mã hóa văn bản, xử lý ảnh/tệp, kiểm thử, thám mã và lý thuyết.
+Bao gồm thanh điều hướng lướt chuột tự mở rộng, vùng nội dung và bảng tra cứu.
 """
 
-from __future__ import annotations
-from nicegui import ui
+from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
+from nicegui import ui  # dùng để xây dựng và điều khiển các thành phần giao diện người dùng
 
-from src.ui.tab_tiny_rc4 import build_tab_tiny_rc4
-from src.ui.tab_rc4_text import build_tab_rc4_text
-from src.ui.tab_rc4_file import build_tab_rc4_file
-from src.ui.tab_testing import build_tab_testing
-from src.ui.tab_attack_bench import build_tab_attack_bench
-from src.ui.tab_theory import build_tab_theory
-from src.ui.pwa import inject_pwa_head_tags
+from src.ui.tab_tiny_rc4 import build_tab_tiny_rc4  # file nội bộ: giao diện mô phỏng thuật toán TinyRC4
+from src.ui.tab_rc4_text import build_tab_rc4_text  # file nội bộ: giao diện mã hóa văn bản UTF-8
+from src.ui.file_pipeline import build_file_pipeline  # file nội bộ: quy trình 3 bước xử lý tệp và ảnh
+from src.ui.tab_testing import build_tab_testing  # file nội bộ: bộ kiểm thử tự động RFC 6229
+from src.ui.tab_attack_bench import build_tab_attack_bench  # file nội bộ: thám mã Two-Time Pad & benchmark
+from src.ui.tab_theory import build_tab_theory  # file nội bộ: lý thuyết mật mã, sơ đồ Mermaid & A5/1
 
 
 def _inject_katex_and_fonts() -> None:
-    """Tích hợp phông chữ tiếng Việt chuẩn (Inter + JetBrains Mono) và KaTeX Math an toàn."""
+    """Tích hợp phông chữ tiếng Việt (Inter, JetBrains Mono) và KaTeX render toán học.
+
+    Tham số: Không có.
+    Giá trị trả về: Không có (chèn trực tiếp mã CSS và JS vào thẻ <head> trang web).
+    """
     ui.add_head_html(
         """
         <!-- 1. Google Fonts: Inter & JetBrains Mono -->
@@ -152,18 +152,24 @@ def _inject_katex_and_fonts() -> None:
 
 
 def build_nicegui_interface() -> None:
-    """Khởi tạo toàn bộ giao diện theo chuẩn Cryptographic Workbench (6 Tabs trực tiếp)."""
+    """Khởi tạo toàn bộ giao diện theo chuẩn Workbench (6 Tabs trực tiếp).
+
+    Tham số: Không có.
+    Giá trị trả về: Không có (dựng các thành phần trực tiếp lên trang web).
+    Ví dụ: build_nicegui_interface()
+    """
     # 1. Tích hợp phông chữ & KaTeX
     _inject_katex_and_fonts()
 
-    # 2. Tích hợp PWA Head Tags (Manifest, Icons, Service Worker)
-    inject_pwa_head_tags()
-
-    # 2. Component Defaults toàn cục
+    # 2. Thiết lập định dạng mặc định cho các thành phần giao diện
+    # ui.card: khung thẻ chữ nhật có viền bóng đổ để nhóm nội dung liên quan lại với nhau
+    # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
     ui.card.default_classes("bg-white border border-slate-200/90 rounded-2xl shadow-xs")
+    # ui.input: ô nhập văn bản một dòng cho người dùng điền chuỗi
     ui.input.default_props("outlined dense")
     ui.textarea.default_props("outlined dense")
     ui.select.default_props("outlined dense")
+    # ui.button: nút bấm để người dùng tương tác khi nhấp chuột
     ui.button.default_props("unelevated")
     ui.button.default_classes("font-semibold rounded-lg transition-all")
     ui.badge.default_classes("rounded-md px-2.5 py-1 font-semibold")
@@ -177,29 +183,34 @@ def build_nicegui_interface() -> None:
     except Exception:
         pass
 
-    # 3. Palette màu
+    # 3. Palette bảng màu chủ đạo cho toàn bộ ứng dụng
     ui.colors(
-        primary="#1d4ed8",    # Blue 700
-        secondary="#0284c7",  # Sky 600
-        accent="#0d9488",     # Teal 600
-        positive="#10b981",   # Emerald 500
-        negative="#ef4444",   # Rose 500
-        warning="#f59e0b",    # Amber 500
-        dark="#0f172a",       # Slate 900
+        primary="#1d4ed8",    # Blue 700: màu xanh thương hiệu chính
+        secondary="#0284c7",  # Sky 600: màu phụ trợ
+        accent="#0d9488",     # Teal 600: màu điểm nhấn
+        positive="#10b981",   # Emerald 500: màu xanh lá biểu thị thành công/khớp
+        negative="#ef4444",   # Rose 500: màu đỏ biểu thị cảnh báo/sai khóa
+        warning="#f59e0b",    # Amber 500: màu vàng cảnh báo
+        dark="#0f172a",       # Slate 900: màu nền tối
     )
 
     # =========================================================================
     # KHUNG TOÀN MÀN HÌNH CHUẨN WORKBENCH (FULLSCREEN APP SHELL)
     # =========================================================================
+    # ui.column: xếp các phần tử theo chiều dọc từ trên xuống dưới
     with ui.column().classes("w-screen h-screen m-0 p-0 gap-0 overflow-hidden bg-slate-900 select-none"):
 
         # ---------------------------------------------------------------------
         # TẦNG TRÊN: SIDE MENU (HOVER-TO-EXPAND) + (MAIN CONTENT) + RIGHT SIDEBAR
         # ---------------------------------------------------------------------
+        # ui.row: xếp các phần tử nằm ngang cùng một dòng (ví dụ: menu trái, nội dung, bảng phải)
         with ui.row().classes("w-full flex-1 m-0 p-0 gap-0 overflow-hidden items-stretch flex-nowrap"):
 
             # =================================================================
             # 1. SIDE MENU (LƯỚT CHUỘT TỰ MỞ RỘNG: w-16 -> w-64, CHỐNG WRAP)
+            # Cơ chế: bình thường chỉ rộng 16 đơn vị (w-16, chỉ hiện icon). Khi rê chuột
+            # vào vùng group (group-hover), menu tự trượt mở rộng ra 64 đơn vị (hover:w-64)
+            # để hiện đầy đủ tiêu đề và mô tả của từng mục điều hướng.
             # =================================================================
             with ui.column().classes(
                 "group w-16 hover:w-64 bg-slate-950 border-r border-slate-800 "
@@ -279,7 +290,15 @@ def build_nicegui_interface() -> None:
 
                     # Hàm render mục menu thường (h-12)
                     def render_nav_row(item: dict[str, str]) -> ui.row:
+                        """Vẽ một dòng mục chọn trên menu điều hướng bên trái.
+
+                        Tham số:
+                            item: Từ điển chứa thông tin mục menu ('id', 'title', 'subtitle', 'icon').
+                        Giá trị trả về:
+                            Đối tượng ui.row chứa biểu tượng và nhãn văn bản của mục menu.
+                        """
                         is_initial_active = (item["id"] == "tab1")
+                        # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
                         init_classes = (
                             "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden "
                             + (
@@ -347,12 +366,23 @@ def build_nicegui_interface() -> None:
                     sub_menu_col.set_visibility(False)
 
                     def set_sub_menu_state(open_state: bool) -> None:
+                        """Đóng hoặc mở danh sách các mục con của nhóm RC4 Chuẩn & File.
+
+                        Tham số:
+                            open_state: True để mở rộng danh sách con, False để thu gọn lại.
+                        Giá trị trả về: Không có.
+                        """
                         nonlocal is_sub_menu_open
                         is_sub_menu_open = open_state
                         sub_menu_col.set_visibility(open_state)
                         chevron_icon.name = "expand_less" if open_state else "expand_more"
 
                     def toggle_sub_menu() -> None:
+                        """Đảo ngược trạng thái đóng/mở hiện tại của menu con nhóm RC4 Chuẩn & File.
+
+                        Tham số: Không có.
+                        Giá trị trả về: Không có.
+                        """
                         set_sub_menu_state(not is_sub_menu_open)
 
                     group_header_row.on("click", lambda _e: toggle_sub_menu())
@@ -361,24 +391,8 @@ def build_nicegui_interface() -> None:
                     for item in menu_config_after:
                         nav_rows[item["id"]] = render_nav_row(item)
 
-                # Khối Dưới: Nút Cài Đặt PWA + Thông tin NEU & Avatar (flex-nowrap, không bị co kéo)
+                # Khối Dưới: Thông tin NEU & Avatar (flex-nowrap, không bị co kéo)
                 with ui.column().classes("w-full px-0 gap-1.5"):
-                    # Nút Cài đặt ứng dụng PWA (Tự động kích hoạt khi trình duyệt hỗ trợ)
-                    with ui.row().props('id="pwa-install-btn" onclick="triggerPwaInstall()"').classes(
-                        "w-full flex items-center flex-nowrap h-10 px-3 gap-3 overflow-hidden cursor-pointer "
-                        "text-emerald-400 hover:text-white hover:bg-emerald-950/60 transition-all rounded-lg select-none"
-                    ):
-                        with ui.row().classes(
-                            "shrink-0 w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center m-0 p-0 border border-emerald-500/30 shadow-xs"
-                        ):
-                            ui.icon("download_for_offline", size="sm")
-                        with ui.column().classes(
-                            "flex-1 min-w-0 gap-0 whitespace-nowrap overflow-hidden transition-all duration-300 "
-                            "opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[180px]"
-                        ):
-                            ui.label("Cài đặt RC4 Lab").classes("text-xs font-bold leading-tight truncate text-emerald-300")
-                            ui.label("Desktop / Mobile App").classes("text-3xs text-emerald-500/80 font-mono truncate")
-
                     ui.separator().classes("w-full bg-slate-800/80 my-0.5")
                     with ui.row().classes("w-full flex items-center flex-nowrap h-10 px-3 gap-3 overflow-hidden"):
                         with ui.avatar(size="sm", color="blue-800").classes(
@@ -426,7 +440,7 @@ def build_nicegui_interface() -> None:
                         build_tab_rc4_text()
 
                     with ui.tab_panel(tab2_file).classes("p-0 space-y-5"):
-                        build_tab_rc4_file()
+                        build_file_pipeline()
 
                     with ui.tab_panel(tab3).classes("p-0 space-y-5"):
                         build_tab_testing()
@@ -501,7 +515,7 @@ def build_nicegui_interface() -> None:
                     ui.icon("circle", size="8px").classes("text-emerald-400 animate-pulse")
                     ui.label("HỆ THỐNG SẴN SÀNG")
                 ui.label("|").classes("text-slate-700")
-                ui.label("Core: Python Thuần 100% (No Crypto Libs)")
+                ui.label("Core: Python Thuần 100% (Không Thư Viện Ngoài)")
                 ui.label("|").classes("text-slate-700")
                 ui.label("Modulo: 8 (TinyRC4) & 256 (Full RC4)")
 
@@ -512,7 +526,15 @@ def build_nicegui_interface() -> None:
 
     # =========================================================================
     # HÀM XỬ LÝ CHUYỂN TAB & CẬP NHẬT TRẠNG THÁI ACTIVE CỦA SIDE MENU
+    # Cơ chế chuyển tab:
+    # 1. Toàn bộ nội dung 6 tab được chứa trong ui.tab_panels, thanh tab ngang bị ẩn.
+    # 2. Khi người dùng bấm vào một mục menu hoặc logo, switch_tab(target_id) được gọi.
+    # 3. Hàm kích hoạt main_tabs.set_value(target_tab) để đổi màn hình hiển thị.
+    # 4. Sau đó hàm cập nhật class CSS viền sáng và màu nền xanh (active_class) cho mục
+    #    vừa chọn, đồng thời đưa các mục còn lại về màu tối (inactive_class).
+    # 5. Nếu tab được chọn là tab con (tab2_text, tab2_file), menu nhóm cha tự mở rộng.
     # =========================================================================
+    # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
     active_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden bg-blue-600 text-white font-bold border-l-sky-300 shadow-md"
     inactive_class = "w-full flex items-center flex-nowrap h-12 px-3 gap-3 cursor-pointer transition-all duration-200 border-l-4 overflow-hidden text-slate-400 hover:text-white hover:bg-slate-900 border-l-transparent"
 
@@ -525,6 +547,12 @@ def build_nicegui_interface() -> None:
     child_tab_ids = {"tab2_text", "tab2_file"}
 
     def switch_tab(target_id: str) -> None:
+        """Chuyển đổi tab nội dung hiển thị ở giữa màn hình và đổi màu mục menu tương ứng.
+
+        Tham số:
+            target_id: Chuỗi mã định danh của tab cần chuyển tới ('tab1', 'tab2_text',...).
+        Giá trị trả về: Không có.
+        """
         if target_id not in tab_map:
             return
         target_tab = tab_map[target_id]

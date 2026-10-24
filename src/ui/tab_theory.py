@@ -1,25 +1,29 @@
 """
 Tab 5: Tổng Quan Lý Thuyết, Sơ Đồ Khối Mermaid & So Sánh Hệ Mã A5/1
 ===================================================================
-Trình bày súc tích trong 1 tab duy nhất:
-  1. Bối cảnh ra đời, ứng dụng và lỗ hổng bảo mật (RFC 7465)
-  2. Sơ đồ khối KSA & PRGA tự vẽ bằng mã Mermaid (không dùng ảnh chụp)
-  3. Bảng phân tích chi tiết ví dụ tính tay P="BAG", K=[2, 1, 3] (dạng bảng Markdown chuẩn)
-  4. Bảng so sánh chuyên sâu giữa RC4 và A5/1 (GSM)
+Tab này hiển thị tài liệu lý thuyết, sơ đồ khối thuật toán tự vẽ và bảng so sánh RC4 với A5/1.
+Người dùng có thể đọc quy trình tính tay bài tập trên lớp, xem các mốc lịch sử và lý do cấm RC4.
+Tab hoạt động độc lập ở tầng giao diện trình bày, không gọi trực tiếp hàm tính toán từ src.core.
 """
 
-from __future__ import annotations
-from nicegui import ui
+from __future__ import annotations  # dùng để hỗ trợ khai báo kiểu dữ liệu hiện đại
+from nicegui import ui  # dùng để tạo các thành phần giao diện web (thẻ card, markdown, sơ đồ)
 
 
 def build_tab_theory() -> None:
-    """Xây dựng giao diện Tab 5: Lý thuyết, sơ đồ khối Mermaid & so sánh A5/1 theo chuẩn Modular Flat Cards."""
-    with ui.column().classes("w-full gap-5"):
+    """
+    Xây dựng giao diện Tab 5: Tổng quan lý thuyết, sơ đồ khối Mermaid và bảng so sánh A5/1.
+
+    Tham số: Không có.
+    Trả về: None.
+    """
+    with ui.column().classes("w-full gap-5"):  # các lớp Tailwind CSS căn chỉnh cột giao diện
 
         # ======================================================================
         # CARD 1: BỐI CẢNH LỊCH SỬ & CỘT MỐC BẢO MẬT RFC 7465
         # ======================================================================
-        with ui.card().classes("w-full p-6 space-y-3"):
+        # Khung card 1: Trình bày lịch sử hình thành, ứng dụng WEP/TLS và lý do cấm sử dụng RC4 (RFC 7465)
+        with ui.card().classes("w-full p-6 space-y-3"):  # khung card bo góc viền phẳng
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
                 with ui.row().classes("items-center gap-3"):
                     with ui.row().classes("w-9 h-9 rounded-lg bg-blue-50 text-blue-700 items-center justify-center border border-blue-200"):
@@ -29,6 +33,7 @@ def build_tab_theory() -> None:
                         ui.label("Ron Rivest (1987) • Chuẩn mã hóa phổ biến nhất thế giới • Lý do cấm sử dụng").classes("text-xs text-slate-500")
                 ui.badge("Lịch sử mật mã", color="primary").classes("text-xs")
 
+            # ui.markdown: thành phần kết xuất văn bản Markdown chuẩn kết hợp công thức toán KaTeX
             ui.markdown(
                 r"""
 * **Tác giả & Năm công bố**: Thuật toán được thiết kế bởi **Ron Rivest** (chữ **R** trong hệ mã bất đối xứng RSA) tại hãng RSA Security vào năm **1987**. Ban đầu RC4 là bí mật thương mại độc quyền, đến tháng 9/1994, mã nguồn thuật toán bị rò rỉ ẩn danh lên danh sách thư *Cypherpunks*.
@@ -45,7 +50,8 @@ def build_tab_theory() -> None:
         # ======================================================================
         # CARD 2: SƠ ĐỒ KHỐI THUẬT TOÁN MERMAID
         # ======================================================================
-        with ui.card().classes("w-full p-6 space-y-3"):
+        # Khung card 2: Vẽ sơ đồ khối trực quan hai giai đoạn KSA và PRGA
+        with ui.card().classes("w-full p-6 space-y-3"):  # khung card bo góc viền phẳng
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
                 with ui.row().classes("items-center gap-3"):
                     with ui.row().classes("w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 items-center justify-center border border-emerald-200"):
@@ -55,6 +61,7 @@ def build_tab_theory() -> None:
                         ui.label("Mã Mermaid vẽ động trong trình duyệt • Không sử dụng hình ảnh chụp").classes("text-xs text-slate-500")
                 ui.badge("Tự vẽ Mermaid", color="positive").classes("text-xs")
 
+            # ui.mermaid: thành phần dựng sơ đồ luồng thuật toán tự động từ mã Mermaid trong trình duyệt
             ui.mermaid(
                 """
 flowchart LR
@@ -84,7 +91,8 @@ flowchart LR
         # ======================================================================
         # CARD 3: VÍ DỤ TÍNH TAY CHI TIẾT (SLIDE 56-60)
         # ======================================================================
-        with ui.card().classes("w-full p-6 space-y-4"):
+        # Khung card 3: Trình bày chi tiết từng bước tính toán lý thuyết ví dụ trên lớp Slide 56-60
+        with ui.card().classes("w-full p-6 space-y-4"):  # khung card bo góc viền phẳng
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
                 with ui.row().classes("items-center gap-3"):
                     with ui.row().classes("w-9 h-9 rounded-lg bg-amber-50 text-amber-700 items-center justify-center border border-amber-200"):
@@ -137,7 +145,8 @@ $$\implies \text{Kết quả mảng } S \text{ sau giai đoạn KSA: } \mathbf{S
         # ======================================================================
         # CARD 4: SO SÁNH ĐA CHIỀU RC4 VỚI A5/1
         # ======================================================================
-        with ui.card().classes("w-full p-6 space-y-3"):
+        # Khung card 4: Bảng so sánh đa chiều giữa hai hệ mã dòng RC4 và A5/1 (GSM)
+        with ui.card().classes("w-full p-6 space-y-3"):  # khung card bo góc viền phẳng
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
                 with ui.row().classes("items-center gap-3"):
                     with ui.row().classes("w-9 h-9 rounded-lg bg-purple-50 text-purple-700 items-center justify-center border border-purple-200"):
