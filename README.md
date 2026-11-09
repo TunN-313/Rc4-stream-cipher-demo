@@ -8,18 +8,7 @@
 
 ---
 
-## 1. Phân Công Thành Viên Trong Nhóm
-
-| Thành viên | Vai trò | Nhánh Git | Nội dung phụ trách chính |
-| :--- | :--- | :--- | :--- |
-| **Thành viên 1 (Frontend)** | Giao diện & Trực quan hóa | `feat/ui-nicegui` | Toàn bộ giao diện NiceGUI (`src/ui/*`), thanh điều hướng Side Menu Hover-to-Expand, bảng tương tác Tabulator, biểu đồ ECharts, tải file/ảnh và kiểm thử UI |
-| **Thành viên 2 (Backend)** | Thuật toán lõi & Kiểm thử | `feat/core-backend` | Cài đặt KSA, PRGA, XOR thuần Python (`src/core/*`), logic thám mã khôi phục khóa FMS, Two-Time Pad, Crib-dragging, Mantin-Shamir bias và unit tests (`tests/*`) |
-
----
-
----
-
-## 2. Các Tính Năng Chính Của Ứng Dụng (4 Phân Hệ Thực Hành)
+## 1. Các Tính Năng Chính Của Ứng Dụng (4 Phân Hệ Thực Hành)
 
 ### 📌 Tab 1: Trực Quan Hóa TinyRC4 (3-bit Step-by-Step)
 - **Chuẩn hóa học thuật**: Mô phỏng hệ mã dòng 3-bit thu nhỏ trên không gian 8 phần tử ($N=8$, modulo 8) theo đúng bài giảng Khoa CNTT - ĐH Kinh tế Quốc dân (Slide 56–60).
@@ -74,7 +63,7 @@
 
 ---
 
-## 3. Cài Đặt & Khởi Chạy Nhanh
+## 2. Cài Đặt & Khởi Chạy Nhanh
 
 ### Yêu cầu môi trường
 - **Python**: 3.9 đến 3.14 (Khuyến nghị 3.10 trở lên)
@@ -147,7 +136,7 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ---
 
-## 4. Chạy Kiểm Thử Tự Động (Unit Tests)
+## 3. Chạy Kiểm Thử Tự Động (Unit Tests)
 
 Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/test_kiem_thu_toan_dien.py`, bao gồm **56 ca kiểm thử** và **28 subtests** kiểm tra trọn vẹn 7 nhóm chức năng:
 1. **Core RC4 & 20 Test Vectors chuẩn Chương 4**: Đối chiếu toàn bộ 20 ca kiểm thử chuẩn hóa thuộc 4 nhóm (TinyRC4 `TINY-01..04`, RC4 Đầy đủ `RC4-01..05`, Đa dạng dữ liệu `DATA-01..05`, Trường hợp đặc biệt `SPECIAL-01..06`), bảo đảm đối chiếu RFC 6229 và tính toàn vẹn 100%.
@@ -190,7 +179,7 @@ tests/test_kiem_thu_toan_dien.py::test_tab_testing_ui_elements PASSED           
 
 ---
 
-## 5. Cấu Trúc Thư Mục Dự Án (Chuẩn Hóa Tiếng Việt)
+## 4. Cấu Trúc Thư Mục Dự Án (Chuẩn Hóa Tiếng Việt)
 
 ```text
 .
