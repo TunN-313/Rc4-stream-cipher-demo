@@ -8,9 +8,9 @@
 
 ---
 
-## 1. Các Tính Năng Chính Của Ứng Dụng (4 Phân Hệ Thực Hành)
+## 1. Các Tính Năng Chính Của Ứng Dụng 
 
-### 📌 Tab 1: Trực Quan Hóa TinyRC4 (3-bit Step-by-Step)
+### 📌 Tab 1: Trực Quan Hóa TinyRC4 
 - **Chuẩn hóa học thuật**: Mô phỏng hệ mã dòng 3-bit thu nhỏ trên không gian 8 phần tử ($N=8$, modulo 8) theo đúng bài giảng Khoa CNTT - ĐH Kinh tế Quốc dân (Slide 56–60).
 - **Bộ chuyển đổi bảng chữ cái**: Ánh xạ ký tự chữ cái chuẩn `A`..`H` sang chuỗi 3-bit tương ứng `000`..`111` ($0..7$).
 - **Chi tiết từng bước**:
@@ -36,7 +36,7 @@
   - Giải mã khôi phục nguyên vẹn 100% từng byte dữ liệu gốc, hiển thị so sánh trực quan ảnh trước và sau khi giải mã.
 - **Trực quan hóa S-Box 16x16**: Hiển thị bảng ma trận 256 phần tử của hoán vị $S$ trước và sau giai đoạn KSA/PRGA.
 
-### 📌 Tab 3: Bộ Kiểm Thử Tự Động & Đánh Giá Thực Nghiệm (20 Ca Chuẩn Hóa Theo Chương 4)
+### 📌 Tab 3: Bộ Kiểm Thử Tự Động & Đánh Giá Thực Nghiệm 
 - **Thẻ môi trường thực nghiệm chuẩn hóa (Mục 4.1.2)**: Hiển thị tự động thông số hệ điều hành (OS), phiên bản Python, công cụ chạy kiểm thử (pytest / Runner) và bộ đếm thời gian phân giải cao (`time.perf_counter`).
 - **Bộ chọn nhóm kiểm thử 1 chạm (5 chế độ lọc linh hoạt)**:
   - `Tất cả (20)`: Toàn bộ 20 kịch bản kiểm thử chuẩn hóa.
@@ -46,7 +46,7 @@
   - `4. Đặc Biệt (6)`: Bộ 6 ca kiểm thử trường hợp biên & đặc biệt: Khóa cực ngắn 1 byte, khóa cực dài 256 bytes, khóa toàn 0x00, khóa toàn 0xFF, dữ liệu lặp chu kỳ và giải mã sai khóa (`SPECIAL-01`..`06` - Bảng 4.2.4).
 - **Tích hợp Tabulator hiện đại & Xuất báo cáo đa định dạng**: Bảng kiểm thử tương tác với huy hiệu `PASS` chuẩn màu, ô tìm kiếm nhanh, phân trang và các nút xuất báo cáo `Xuất CSV`, `Xuất JSON` và `In báo cáo`.
 
-### 📌 Tab 4: Thám Mã & Tấn Công Bẻ Khóa RC4 (FMS, Two-Time Pad & Bias)
+### 📌 Tab 4: Thám Mã & Tấn Công Bẻ Khóa RC4 
 - **1. Tấn công bẻ khóa bí mật FMS trong WEP (Key Recovery Attack)**:
   - Khôi phục chính xác toàn bộ khóa bí mật dùng chung $K$ (WEP 64-bit hoặc 128-bit).
   - Thu thập các gói tin mang Vector khởi tạo yếu $IV = (A+3, \text{0xFF}, X)$ và biết trước byte đầu $P_0 = \text{0xAA}$ (SNAP/LLC).
@@ -136,7 +136,7 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ---
 
-## 3. Chạy Kiểm Thử Tự Động (Unit Tests)
+## 3. Chạy Kiểm Thử Tự Động 
 
 Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/test_kiem_thu_toan_dien.py`, bao gồm **56 ca kiểm thử** và **28 subtests** kiểm tra trọn vẹn 7 nhóm chức năng:
 1. **Core RC4 & 20 Test Vectors chuẩn Chương 4**: Đối chiếu toàn bộ 20 ca kiểm thử chuẩn hóa thuộc 4 nhóm (TinyRC4 `TINY-01..04`, RC4 Đầy đủ `RC4-01..05`, Đa dạng dữ liệu `DATA-01..05`, Trường hợp đặc biệt `SPECIAL-01..06`), bảo đảm đối chiếu RFC 6229 và tính toàn vẹn 100%.
@@ -179,7 +179,7 @@ tests/test_kiem_thu_toan_dien.py::test_tab_testing_ui_elements PASSED           
 
 ---
 
-## 4. Cấu Trúc Thư Mục Dự Án (Chuẩn Hóa Tiếng Việt)
+## 4. Cấu Trúc Thư Mục Dự Án 
 
 ```text
 .
