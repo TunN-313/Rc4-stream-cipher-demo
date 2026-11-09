@@ -1,8 +1,8 @@
 """
-Thuật toán mã hóa dòng RC4 chuẩn 8-bit (src/core/rc4.py)
+Thuật toán mã hóa dòng RC4 chuẩn 8-bit (src/core/rc4_chuan.py)
 Cài đặt thuần Python cho thuật toán KSA (xáo mảng S) và PRGA (sinh dòng khóa XOR dữ liệu).
-Được gọi bởi: phân hệ mã hóa văn bản (tab_rc4_text), mã hóa tệp (file_pipeline) và test suite.
-Gọi đến: src.core.models (chứa FullRC4Result).
+Được gọi bởi: phân hệ mã hóa văn bản (tab_rc4_van_ban), mã hóa tệp (tab_rc4_tep_tin) và test suite.
+Gọi đến: src.core.mo_hinh_du_lieu (chứa FullRC4Result).
 Thuật ngữ: KSA (Key-Scheduling Algorithm) là bước trộn 256 phần tử của S-box bằng khóa K;
 PRGA (Pseudo-Random Generation Algorithm) là bộ sinh dòng byte ngẫu nhiên (keystream);
 XOR (phép cộng nhị phân không nhớ: b ^ k) dùng để biến đổi bản rõ thành bản mã và ngược lại.
@@ -12,7 +12,7 @@ from __future__ import annotations  # dùng để kích hoạt tính năng kiể
 import time  # dùng để bấm giờ hiệu năng mã hóa chính xác từng mili-giây
 from typing import Iterator, List  # dùng để khai báo kiểu dữ liệu danh sách và hàm sinh khối (generator)
 
-from src.core.models import FullRC4Result  # file nội bộ của dự án: cấu trúc lưu kết quả mã hóa RC4
+from src.core.mo_hinh_du_lieu import FullRC4Result  # file nội bộ của dự án: cấu trúc lưu kết quả mã hóa RC4
 
 
 def rc4_ksa(key_bytes: bytes) -> List[int]:
@@ -35,17 +35,19 @@ def rc4_ksa(key_bytes: bytes) -> List[int]:
         raise ValueError("Khóa RC4 vượt quá 256 byte.")
 
     n_len = len(key_bytes)
-    # Mảng S ban đầu là dãy số tăng dần từ 0 đến 255: S = [0, 1, 2, ..., 255]
+    # Khoi tao day so S va T
+    # Mảng S ban đầu là dãy số tăng dần từ 0 đến 255: S[i] = i
     s_arr = list(range(256))
-    # Mảng T sao chép lặp lại các byte khóa cho đủ 256 phần tử: T[i] = K[i % len(K)]
+    # Mảng T sao chép lặp lại các byte khóa cho đủ 256 phần tử: T[i] = K[i % N]
     t_arr = [key_bytes[i % n_len] for i in range(256)]
 
+    # Hoan vi day S
     j = 0
     # Lặp qua từng vị trí i từ 0 đến 255 để xáo trộn ngẫu nhiên mảng S
     for i in range(256):
-        # Cộng dồn chỉ số j: j = (j + S[i] + T[i]) mod 256 (ví dụ: (0 + 0 + 75) % 256 = 75)
+        # Cộng dồn chỉ số j: j = (j + S[i] + T[i]) mod 256
         j = (j + s_arr[i] + t_arr[i]) % 256
-        # Hoán vị hai phần tử S[i] và S[j] để xáo vị trí (ví dụ: đổi chỗ phần tử tại i và j)
+        # Hoán vị hai phần tử S[i] và S[j]: Swap(S[i], S[j])
         s_arr[i], s_arr[j] = s_arr[j], s_arr[i]
     return s_arr
 

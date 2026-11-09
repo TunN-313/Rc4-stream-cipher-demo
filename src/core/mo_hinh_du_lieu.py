@@ -1,7 +1,7 @@
 """
-Mô hình dữ liệu lõi của hệ mã RC4 (src/core/models.py)
+Mô hình dữ liệu lõi của hệ mã RC4 (src/core/mo_hinh_du_lieu.py)
 Định nghĩa các lớp dữ liệu chứa trạng thái từng bước xáo trộn mảng S và sinh dòng khóa.
-Được gọi bởi: toàn bộ backend (rc4, tiny_rc4, analysis) và frontend (src/ui/).
+Được gọi bởi: toàn bộ backend (rc4_chuan, rc4_thu_nho, phan_tich_an_toan) và frontend (src/ui/).
 Gọi đến: không gọi file nội bộ nào khác, chỉ dùng thư viện chuẩn Python.
 """
 
@@ -11,7 +11,7 @@ from dataclasses import dataclass, field  # dùng để tạo các lớp chứa 
 from typing import Dict, List, Optional, Tuple  # dùng để định nghĩa kiểu dữ liệu danh sách, từ điển
 
 # ==============================================================================
-# HỢP ĐỒNG DỮ LIỆU CHUNG GIỮA FRONTEND & BACKEND (src/core/models.py)
+# HỢP ĐỒNG DỮ LIỆU CHUNG GIỮA FRONTEND & BACKEND (src/core/mo_hinh_du_lieu.py)
 # ==============================================================================
 
 # Bảng quy đổi 8 chữ cái 3-bit cố định theo Slide 40 & Slide 56-60 (NEU CNTT)
@@ -127,6 +127,7 @@ class TestCaseComparison:
     actual_hex: str
     decrypted_ok: bool
     passed: bool
+    test_id: str = ""  # Mã định danh ca kiểm thử chuẩn Chương 4 (TINY-01, RC4-01, DATA-01, SPECIAL-01,...)
 
 
 @dataclass
@@ -162,5 +163,95 @@ class KeystreamAttackResult:
     crib_in: str = "p1"
     len_p1: int = 0
     len_p2: int = 0
+
+
+@dataclass
+class FMSByteResult:
+    """
+    Kết quả suy luận thống kê cho một byte của khóa bí mật trong tấn công FMS WEP.
+    Lưu trữ số phiếu bầu của từng giá trị 0..255 và thông tin so sánh với byte khóa thật.
+    """
+    byte_index: int
+    true_byte: int
+    recovered_byte: int
+    matched: bool
+    top_votes: int
+    total_samples: int
+    top_candidates: List[Tuple[int, int]] = field(default_factory=list)
+    all_votes: List[int] = field(default_factory=list)
+
+
+@dataclass
+class FMSAttackResult:
+    """
+    Kết quả toàn diện của tấn công khôi phục khóa FMS (Fluhrer–Mantin–Shamir) trên giao thức WEP.
+    Khôi phục từng byte của khóa bí mật K qua lớp IV yếu (A+3, 255, X) và kiểm chứng độc lập.
+    """
+    secret_key_bytes: bytes
+    recovered_key_bytes: bytes
+    all_matched: bool
+    samples_per_byte: int
+    p0_byte: int
+    byte_results: List[FMSByteResult] = field(default_factory=list)
+    verified_packets: int = 0
+    total_verified_packets: int = 50
+    elapsed_ms: float = 0.0
+    collected_packets_count: int = 0
+
+
+@dataclass
+class Utf8CharBreakdown:
+    """
+    Phân tích cấu trúc UTF-8 của một ký tự Unicode (Mục 2.1.4, Bảng 2.2, 2.3, 2.4).
+    Lưu trữ mã điểm Unicode, số byte, mẫu bit và các byte dữ liệu.
+    """
+    char: str
+    codepoint: str  # Ví dụ: "U+00E0"
+    codepoint_dec: int  # 224
+    byte_count: int  # 2
+    utf8_bytes: bytes  # b'\xc3\xa0'
+    hex_str: str  # "C3 A0"
+    bin_str: str  # "11000011 10100000"
+    pattern: str  # "110xxxxx 10xxxxxx"
+    data_bits: str  # "00011 100000"
+    byte_dec_list: List[int] = field(default_factory=list)  # [195, 160]
+
+
+@dataclass
+class Utf8Rc4Step:
+    """
+    Chi tiết từng bước mã hóa 8-bit XOR giữa byte bản rõ UTF-8 và byte dòng khóa RC4 (Bảng 2.5).
+    """
+    r: int  # Bước thứ r (1-indexed)
+    char_ref: str  # Ký tự gốc (hoặc ký tự chứa byte này)
+    p_val: int  # Byte bản rõ P_r (0..255)
+    p_bin: str  # Nhị phân 8-bit của P_r
+    p_hex: str  # Hex 2 ký tự của P_r
+    z_val: int  # Byte dòng khóa Z_r (0..255)
+    z_bin: str  # Nhị phân 8-bit của Z_r
+    z_hex: str  # Hex 2 ký tự của Z_r
+    c_val: int  # Byte bản mã C_r = P_r XOR Z_r (0..255)
+    c_bin: str  # Nhị phân 8-bit của C_r
+    c_hex: str  # Hex 2 ký tự của C_r
+    xor_expr: str  # "01000001 ⊕ 10110010 = 11110011"
+
+
+@dataclass
+class Utf8DecodeFailure:
+    """
+    Thông tin chẩn đoán lỗi khi cố gắng giải mã UTF-8 trực tiếp trên bản mã RC4 (Mục 2.1.4).
+    Giải thích vi phạm cấu trúc tiền tố byte UTF-8 theo RFC 3629.
+    """
+    err_index: int
+    err_byte_val: int
+    err_byte_bin: str
+    err_byte_hex: str
+    next_byte_val: Optional[int]
+    next_byte_bin: Optional[str]
+    next_byte_hex: Optional[str]
+    violation_reason: str
+    python_err_msg: str
+
+
 
 

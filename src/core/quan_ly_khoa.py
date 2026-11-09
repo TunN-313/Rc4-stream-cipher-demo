@@ -1,7 +1,7 @@
 """
-Module Quản lý và Khởi tạo Khóa Bí Mật (src/core/keys.py)
+Module Quản lý và Khởi tạo Khóa Bí Mật (src/core/quan_ly_khoa.py)
 Sinh ngẫu nhiên an toàn và chuẩn hóa khóa từ văn bản hoặc chuỗi Hex cho RC4 và TinyRC4.
-Được gọi bởi: phân hệ giao diện (tab_rc4_text, file_pipeline, tab_tiny_rc4) và test suite.
+Được gọi bởi: phân hệ giao diện (tab_rc4_van_ban, tab_rc4_tep_tin, tab_rc4_thu_nho) và test suite.
 Gọi đến: thư viện chuẩn Python secrets để tạo byte ngẫu nhiên an toàn mật mã (CSPRNG).
 Thuật ngữ: CSPRNG (Cryptographically Secure Pseudo-Random Number Generator) là bộ sinh
 số ngẫu nhiên an toàn chuẩn mã hóa, kẻ tấn công không thể đoán trước giá trị kế tiếp.

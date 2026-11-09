@@ -1,9 +1,12 @@
-# Python Bytecode and cache
+# Python Bytecode, cache & test artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
+.coverage
+htmlcov/
+*.log
 
 # Environments
 .env
@@ -12,20 +15,22 @@ env/
 venv/
 ENV/
 
-# NiceGUI / App cache
+# NiceGUI / App cache & storage
 .nicegui/
 .storage/
 
-# IDE and Antigravity
+# IDE, Editors & AI Assistants
 .vscode/
 .idea/
+*.swp
+*.swo
 .gemini/
 .agents/
 GEMINI.md
 
-# Temporary / OS
+# Temporary, OS & Generated files
 .DS_Store
 Thumbs.db
 *.rc4
-
-
+*.tmp
+*.bak
