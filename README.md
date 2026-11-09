@@ -90,12 +90,16 @@ cd Rc4-stream-cipher-demo
 
 ### Bước 2: Tạo và kích hoạt môi trường ảo (Khuyến nghị)
 ```bash
-# Trên Windows (PowerShell / Command Prompt)
+# Trên Windows PowerShell
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 
-# Mẹo: Nếu Windows PowerShell báo lỗi kịch bản (ExecutionPolicy), hãy chạy:
+# Mẹo: Nếu PowerShell báo lỗi kịch bản (ExecutionPolicy), hãy chạy:
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# Trên Windows Command Prompt (cmd.exe)
+python -m venv .venv
+.venv\Scripts\activate.bat
 
 # Trên Linux / macOS
 python3 -m venv .venv
@@ -104,6 +108,10 @@ source .venv/bin/activate
 
 ### Bước 3: Cài đặt các thư viện phụ thuộc
 ```bash
+# Nâng cấp pip lên bản mới nhất (khuyến nghị)
+python -m pip install --upgrade pip
+
+# Cài đặt toàn bộ thư viện phụ thuộc
 pip install -r requirements.txt
 ```
 
@@ -130,7 +138,7 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ## 4. Chạy Kiểm Thử Tự Động (Unit Tests)
 
-Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/test_kiem_thu_toan_dien.py`, bao gồm **55 ca kiểm thử** và **28 subtests** kiểm tra trọn vẹn 7 nhóm chức năng:
+Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/test_kiem_thu_toan_dien.py`, bao gồm **56 ca kiểm thử** và **28 subtests** kiểm tra trọn vẹn 7 nhóm chức năng:
 1. **Core RC4 & 20 Test Vectors chuẩn Chương 4**: Đối chiếu toàn bộ 20 ca kiểm thử chuẩn hóa thuộc 4 nhóm (TinyRC4 `TINY-01..04`, RC4 Đầy đủ `RC4-01..05`, Đa dạng dữ liệu `DATA-01..05`, Trường hợp đặc biệt `SPECIAL-01..06`), bảo đảm đối chiếu RFC 6229 và tính toàn vẹn 100%.
 2. **Streaming Chunked**: Kiểm tra chia khối (chunks), tối ưu bộ nhớ RAM, bảo toàn tính đối xứng và xử lý ngoại lệ.
 3. **Quản lý khóa & Mã hóa**: Sinh khóa ngẫu nhiên CSPRNG, chuyển đổi bytes, số nguyên và chuỗi Hex.
@@ -166,7 +174,7 @@ tests/test_kiem_thu_toan_dien.py::test_layout_navigation_structure PASSED       
 tests/test_kiem_thu_toan_dien.py::test_fms_ui_elements PASSED                                [ 98%]
 tests/test_kiem_thu_toan_dien.py::test_tab_testing_ui_elements PASSED                        [100%]
 
-============================= 55 passed in 16.97s =============================
+============================= 56 passed in 12.24s =============================
 ```
 
 ---
@@ -206,7 +214,7 @@ tests/test_kiem_thu_toan_dien.py::test_tab_testing_ui_elements PASSED           
 │       ├── tab_kiem_thu.py             # Phân hệ 3: Kiểm thử tự động 20 ca chuẩn Chương 4 & Thẻ môi trường
 │       └── tab_tham_ma.py              # Phân hệ 4: Phòng thực nghiệm thám mã FMS, Two-Time Pad, Bias
 └── tests/                              # Bộ kiểm thử tự động toàn diện (pytest)
-    └── test_kiem_thu_toan_dien.py      # Suite kiểm thử gộp toàn diện 7 nhóm (55/55 test cases)
+    └── test_kiem_thu_toan_dien.py      # Suite kiểm thử gộp toàn diện 7 nhóm (56/56 test cases)
 ```
 
 ---
