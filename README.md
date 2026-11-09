@@ -83,10 +83,21 @@
 ---
 
 ### Bước 1: Tải mã nguồn về máy
-```bash
-git clone https://github.com/TunN-313/Rc4-stream-cipher-demo.git
-cd Rc4-stream-cipher-demo
-```
+
+Bạn có thể chọn **1 trong 2 cách** sau:
+
+* **Cách A (Nếu máy đã cài Git - Khuyến nghị):**
+  ```bash
+  git clone https://github.com/TunN-313/Rc4-stream-cipher-demo.git
+  cd Rc4-stream-cipher-demo
+  ```
+
+* **Cách B (Nếu máy chưa cài Git — Không cần cài thêm phần mềm):**
+  1. Truy cập trực tiếp link tải file nén: 👉 **[Tải file ZIP mã nguồn (nhánh main)](https://github.com/TunN-313/Rc4-stream-cipher-demo/archive/refs/heads/main.zip)**  
+     *(Hoặc vào trang GitHub dự án -> bấm nút xanh **`<> Code`** -> chọn **`Download ZIP`**)*.
+  2. Giải nén tệp `Rc4-stream-cipher-demo-main.zip` vừa tải về máy.
+  3. Mở thư mục vừa giải nén trong PowerShell / Terminal / Command Prompt rồi chuyển sang Bước 2.
+  *(Nếu muốn cài đặt Git để tiện cập nhật code, bạn có thể tải tại [git-scm.com](https://git-scm.com/download/win) hoặc chạy `winget install --id Git.Git -e --source winget`).*
 
 ### Bước 2: Tạo và kích hoạt môi trường ảo (Khuyến nghị)
 ```bash
