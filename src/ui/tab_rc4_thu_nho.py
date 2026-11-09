@@ -2,23 +2,23 @@
 
 Người dùng nhập bản rõ/bản mã (A..H hoặc 3-bit nhị phân) và khóa bí mật (0..7),
 hoặc bấm nút nạp ví dụ mẫu bài giảng NEU, thực thi mã hóa và giải mã đối xứng.
-Giao diện gọi hàm run_tiny_rc4() trong src/core/tiny_rc4.py và hiển thị bảng chi tiết KSA, PRGA.
+Giao diện gọi hàm run_tiny_rc4() trong src/core/rc4_thu_nho.py và hiển thị bảng chi tiết KSA, PRGA.
 Mọi phép toán tuân thủ đúng chuẩn giáo trình An toàn & Bảo mật Thông tin NEU.
 """
 
 from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
 from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
 
-from src.core.models import TinyRC4Result  # file nội bộ: cấu trúc dữ liệu kết quả thực thi TinyRC4
-from src.core.tiny_rc4 import run_tiny_rc4  # file nội bộ: hàm thuật toán cốt lõi TinyRC4
+from src.core.mo_hinh_du_lieu import TinyRC4Result  # file nội bộ: cấu trúc dữ liệu kết quả thực thi TinyRC4
+from src.core.rc4_thu_nho import run_tiny_rc4  # file nội bộ: hàm thuật toán cốt lõi TinyRC4
 
 
-def build_tab_tiny_rc4() -> None:
+def dung_tab_rc4_thu_nho() -> None:
     """Xây dựng giao diện Tab 1: Trực quan hóa từng bước TinyRC4 (Slide 53-60 NEU).
 
     Tham số: Không có.
     Giá trị trả về: Không có (dựng các thành phần trực tiếp lên giao diện NiceGUI).
-    Ví dụ: build_tab_tiny_rc4()
+    Ví dụ: dung_tab_rc4_thu_nho()
     """
     # các lớp Tailwind CSS chỉnh màu, khoảng cách, cỡ chữ
     # Khung điều khiển & Nhập liệu chính (Flat Control Card)
@@ -317,3 +317,6 @@ def build_tab_tiny_rc4() -> None:
 
     # Hiển thị mặc định ví dụ trên lớp ngay khi mở trang
     load_classroom_example()
+
+
+

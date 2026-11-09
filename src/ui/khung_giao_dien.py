@@ -1,20 +1,19 @@
-"""Bố cục giao diện chính của ứng dụng RC4 Lab (src/ui/layout.py).
+"""Bố cục giao diện chính của ứng dụng RC4 Lab (src/ui/khung_giao_dien.py).
 
 File này được gọi bởi main.py để khởi tạo cấu trúc màn hình hoàn chỉnh.
 File gọi đến các hàm build_tab_* trong thư mục src/ui/ để dựng từng tab chức năng:
-mô hình TinyRC4, mã hóa văn bản, xử lý ảnh/tệp, kiểm thử, thám mã và lý thuyết.
+mô hình TinyRC4, mã hóa văn bản, xử lý ảnh/tệp, kiểm thử và thám mã thực hành.
 Bao gồm thanh điều hướng lướt chuột tự mở rộng, vùng nội dung và bảng tra cứu.
 """
 
 from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
 from nicegui import ui  # dùng để xây dựng và điều khiển các thành phần giao diện người dùng
 
-from src.ui.tab_tiny_rc4 import build_tab_tiny_rc4  # file nội bộ: giao diện mô phỏng thuật toán TinyRC4
-from src.ui.tab_rc4_text import build_tab_rc4_text  # file nội bộ: giao diện mã hóa văn bản UTF-8
-from src.ui.file_pipeline import build_file_pipeline  # file nội bộ: quy trình 3 bước xử lý tệp và ảnh
-from src.ui.tab_testing import build_tab_testing  # file nội bộ: bộ kiểm thử tự động RFC 6229
-from src.ui.tab_attack_bench import build_tab_attack_bench  # file nội bộ: thám mã Two-Time Pad & benchmark
-from src.ui.tab_theory import build_tab_theory  # file nội bộ: lý thuyết mật mã, sơ đồ Mermaid & A5/1
+from src.ui.tab_rc4_thu_nho import dung_tab_rc4_thu_nho  # file nội bộ: giao diện mô phỏng thuật toán TinyRC4
+from src.ui.tab_rc4_van_ban import dung_tab_rc4_van_ban  # file nội bộ: giao diện mã hóa văn bản UTF-8
+from src.ui.tab_rc4_tep_tin import dung_tab_rc4_tep_tin  # file nội bộ: quy trình 3 bước xử lý tệp và ảnh
+from src.ui.tab_kiem_thu import dung_tab_kiem_thu  # file nội bộ: bộ kiểm thử tự động 20 ca Chương 4
+from src.ui.tab_tham_ma import dung_tab_tham_ma  # file nội bộ: thám mã FMS, Two-Time Pad & Bias
 
 
 def _inject_katex_and_fonts() -> None:
@@ -151,12 +150,12 @@ def _inject_katex_and_fonts() -> None:
     )
 
 
-def build_nicegui_interface() -> None:
+def dung_khung_giao_dien() -> None:
     """Khởi tạo toàn bộ giao diện theo chuẩn Workbench (6 Tabs trực tiếp).
 
     Tham số: Không có.
     Giá trị trả về: Không có (dựng các thành phần trực tiếp lên trang web).
-    Ví dụ: build_nicegui_interface()
+    Ví dụ: dung_khung_giao_dien()
     """
     # 1. Tích hợp phông chữ & KaTeX
     _inject_katex_and_fonts()
@@ -217,7 +216,7 @@ def build_nicegui_interface() -> None:
                 "transition-all duration-300 ease-in-out overflow-hidden "
                 "flex flex-col justify-between py-3.5 px-0 z-30 shrink-0 h-full select-none shadow-xl"
             ):
-                # Khối Trên: Brand / Logo + 6 Mục Menu Điều Hướng (Tab 1 -> Tab 5)
+                # Khối Trên: Brand / Logo + Các Mục Menu Điều Hướng Thực Hành (Tab 1 -> Tab 4)
                 with ui.column().classes("w-full gap-2 px-0"):
                     # Logo Header (flex-nowrap, click chuyển về Tab 1)
                     with ui.row().classes(
@@ -237,7 +236,7 @@ def build_nicegui_interface() -> None:
 
                     ui.separator().classes("w-full bg-slate-800/80 mb-2")
 
-                    # Cấu trúc menu điều hướng (Tab 1, Nhóm RC4 Chuẩn & File, Tab 3 -> Tab 5)
+                    # Cấu trúc menu điều hướng (Tab 1, Nhóm RC4 Chuẩn & File, Tab 3 & Tab 4)
                     menu_config_before = [
                         {
                             "id": "tab1",
@@ -273,15 +272,9 @@ def build_nicegui_interface() -> None:
                         },
                         {
                             "id": "tab4",
-                            "title": "Tấn Công & Tốc Độ",
-                            "subtitle": "Two-Time Pad & Benchmark",
+                            "title": "Thám Mã & Tấn Công",
+                            "subtitle": "FMS, Two-Time Pad & Bias",
                             "icon": "security",
-                        },
-                        {
-                            "id": "tab5",
-                            "title": "Lý Thuyết & So Sánh",
-                            "subtitle": "Sơ đồ Mermaid & A5/1",
-                            "icon": "menu_book",
                         },
                     ]
 
@@ -387,7 +380,7 @@ def build_nicegui_interface() -> None:
 
                     group_header_row.on("click", lambda _e: toggle_sub_menu())
 
-                    # 4. Render các Tab còn lại (Tab 3 -> Tab 5)
+                    # 4. Render các Tab còn lại (Tab 3 & Tab 4)
                     for item in menu_config_after:
                         nav_rows[item["id"]] = render_nav_row(item)
 
@@ -418,7 +411,6 @@ def build_nicegui_interface() -> None:
                     tab2_file = ui.tab("tab2_file")
                     tab3 = ui.tab("tab3")
                     tab4 = ui.tab("tab4")
-                    tab5 = ui.tab("tab5")
 
                 tab_map = {
                     "tab1": tab1,
@@ -426,7 +418,6 @@ def build_nicegui_interface() -> None:
                     "tab2_file": tab2_file,
                     "tab3": tab3,
                     "tab4": tab4,
-                    "tab5": tab5,
                 }
 
                 # MAIN CONTENT CONTAINER (Mặc định hiển thị tab1: TinyRC4)
@@ -434,22 +425,19 @@ def build_nicegui_interface() -> None:
                     "w-full flex-1 m-0 p-6 overflow-y-auto bg-slate-100/90 select-text"
                 ):
                     with ui.tab_panel(tab1).classes("p-0 space-y-5"):
-                        build_tab_tiny_rc4()
+                        dung_tab_rc4_thu_nho()
 
                     with ui.tab_panel(tab2_text).classes("p-0 space-y-5"):
-                        build_tab_rc4_text()
+                        dung_tab_rc4_van_ban()
 
                     with ui.tab_panel(tab2_file).classes("p-0 space-y-5"):
-                        build_file_pipeline()
+                        dung_tab_rc4_tep_tin()
 
                     with ui.tab_panel(tab3).classes("p-0 space-y-5"):
-                        build_tab_testing()
+                        dung_tab_kiem_thu()
 
                     with ui.tab_panel(tab4).classes("p-0 space-y-5"):
-                        build_tab_attack_bench()
-
-                    with ui.tab_panel(tab5).classes("p-0 space-y-5"):
-                        build_tab_theory()
+                        dung_tab_tham_ma()
 
             # =================================================================
             # 3. RIGHT SIDE BAR (Bảng tra cứu S-Box / Cheatsheet - Width 72)
@@ -527,7 +515,7 @@ def build_nicegui_interface() -> None:
     # =========================================================================
     # HÀM XỬ LÝ CHUYỂN TAB & CẬP NHẬT TRẠNG THÁI ACTIVE CỦA SIDE MENU
     # Cơ chế chuyển tab:
-    # 1. Toàn bộ nội dung 6 tab được chứa trong ui.tab_panels, thanh tab ngang bị ẩn.
+    # 1. Toàn bộ nội dung các tab thực hành được chứa trong ui.tab_panels, thanh tab ngang bị ẩn.
     # 2. Khi người dùng bấm vào một mục menu hoặc logo, switch_tab(target_id) được gọi.
     # 3. Hàm kích hoạt main_tabs.set_value(target_tab) để đổi màn hình hiển thị.
     # 4. Sau đó hàm cập nhật class CSS viền sáng và màu nền xanh (active_class) cho mục
@@ -589,3 +577,6 @@ def build_nicegui_interface() -> None:
 
     # Click logo chuyển về Tab 1 (không làm hỏng trạng thái nhóm)
     brand_logo_row.on("click", lambda: switch_tab("tab1"))
+
+
+

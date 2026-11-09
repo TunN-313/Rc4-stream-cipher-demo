@@ -1,8 +1,8 @@
 """
-Phân Tích An Toàn và Đo Lường Hiệu Năng RC4 (src/core/analysis.py)
+Phân Tích An Toàn và Đo Lường Hiệu Năng RC4 (src/core/phan_tich_an_toan.py)
 Gồm 3 phần: tấn công Two-Time Pad & Crib-dragging, đo thiên lệch byte và đo tốc độ mã hóa.
-Được gọi bởi: phân hệ thám mã & benchmark (tab_attack_bench) và test suite.
-Gọi đến: src.core.models (chứa kết quả thám mã) và src.core.rc4 (thuật toán mã hóa RC4).
+Được gọi bởi: phân hệ thám mã & benchmark (tab_tham_ma) và test suite.
+Gọi đến: src.core.mo_hinh_du_lieu (chứa kết quả thám mã) và src.core.rc4_chuan (thuật toán mã hóa RC4).
 Thuật ngữ: Two-Time Pad là lỗ hổng dùng lại một dòng khóa khiến C1 ^ C2 = P1 ^ P2 mất an toàn;
 Crib là từ ngữ dự đoán trước (ví dụ 'Kinh gui') để kéo trượt qua bản XOR khôi phục bản rõ;
 Bias là hiện tượng thiên lệch xác suất, ví dụ byte thứ 2 về 0x00 với tỷ lệ 1/128 thay vì 1/256.
@@ -10,10 +10,16 @@ Bias là hiện tượng thiên lệch xác suất, ví dụ byte thứ 2 về 0
 
 from __future__ import annotations  # dùng để kích hoạt tính năng kiểm tra kiểu dữ liệu tĩnh
 import random  # dùng để sinh các khóa ngẫu nhiên phục vụ phân tích thực nghiệm thiên lệch byte
+import time  # dùng để bấm giờ thực thi các đòn tấn công và benchmark
 from typing import Dict, List, Optional, Tuple, Union  # dùng để định nghĩa kiểu dữ liệu chuẩn
 
-from src.core.models import CribCandidate, KeystreamAttackResult  # file nội bộ: cấu trúc thám mã
-from src.core.rc4 import rc4_crypt, rc4_crypt_with_details  # file nội bộ: hàm mã hóa RC4
+from src.core.mo_hinh_du_lieu import (  # file nội bộ: cấu trúc thám mã và kết quả tấn công
+    CribCandidate,
+    FMSAttackResult,
+    FMSByteResult,
+    KeystreamAttackResult,
+)
+from src.core.rc4_chuan import rc4_crypt, rc4_crypt_with_details  # file nội bộ: hàm mã hóa RC4
 
 
 # =============================================================================
@@ -226,4 +232,174 @@ def run_rc4_benchmark(
             }
         )
     return results
+
+
+# =============================================================================
+# 4. Tấn công khôi phục khóa FMS trong WEP (Mục 2.7 & 2.8)
+# =============================================================================
+
+def fms_partial_ksa(known_bytes: Union[bytes, List[int]]) -> Tuple[List[int], int]:
+    """
+    Mô phỏng KSA từng phần cho chuỗi byte khóa đã biết (gồm 3 byte IV và A byte bí mật K[0..A-1]).
+    Thực hiện khởi tạo mảng S và hoán vị đến hết vòng thứ len(known_bytes) - 1.
+
+    Tham số:
+        known_bytes (Union[bytes, List[int]]): Dãy byte đã biết gồm IV công khai và các byte khóa trước đó.
+
+    Trả về:
+        Tuple[List[int], int]: Mảng trạng thái S và giá trị biến j tại thời điểm trước vòng kế tiếp.
+    """
+    # Khoi tao day so S va T
+    # S[i] = i; T[i] duoc dai dien bang cac byte known_bytes
+    S = list(range(256))
+
+    # Hoan vi day S
+    j = 0
+    for i in range(len(known_bytes)):
+        j = (j + S[i] + known_bytes[i]) % 256
+        S[i], S[j] = S[j], S[i]
+
+    return S, j
+
+
+def fms_predict_first_output(S: List[int], j: int, i_round: int, guess: int) -> int:
+    """
+    Dự đoán byte đầu tiên của dòng khóa Z0 nếu byte khóa tại vòng i_round nhận giá trị `guess`.
+    Sử dụng kỹ thuật tráo đổi tại chỗ (in-place swap & swap-back) để đạt hiệu năng tối đa.
+
+    Tham số:
+        S (List[int]): Mảng trạng thái S tại đầu vòng i_round (bị thay đổi tạm thời và hoàn tác).
+        j (int): Giá trị chỉ số j tại đầu vòng i_round.
+        i_round (int): Chỉ số vòng KSA hiện tại (ví dụ A + 3).
+        guess (int): Giá trị byte ứng viên đang thử nghiệm (0..255).
+
+    Trả về:
+        int: Byte dòng khóa đầu tiên Z0 dự đoán được.
+    """
+    jj = (j + S[i_round] + guess) % 256
+    # Hoán vị tạm thời hai phần tử S[i_round] và S[jj]
+    S[i_round], S[jj] = S[jj], S[i_round]
+    idx = (S[1] + S[S[1]]) % 256
+    predicted_z0 = S[idx]
+    # Hoàn tác (swap-back) để giữ nguyên mảng S gốc mà không cần gọi S.copy()
+    S[i_round], S[jj] = S[jj], S[i_round]
+    return predicted_z0
+
+
+def simulate_fms_wep_attack(
+    secret_key: Union[bytes, str, List[int]],
+    samples_per_byte: int = 600,
+    p0: int = 0xAA,
+    num_verify: int = 50,
+    seed: Optional[int] = 42,
+) -> FMSAttackResult:
+    """
+    Mô phỏng toàn diện tấn công khôi phục khóa FMS (Fluhrer, Mantin, Shamir) trên giao thức WEP.
+    Theo sát 5 giai đoạn lý thuyết Bảng 2.17 và kịch bản thực nghiệm mục 2.8:
+    1. Xác định dòng khóa đầu: Z0 = C0 ^ P0
+    2. Mô phỏng KSA từng phần cho IV và A byte đã biết
+    3. Thử 256 ứng viên cho K[A] qua hàm fms_predict_first_output
+    4. Tích lũy phiếu thống kê qua các gói tin mang IV yếu (A+3, 255, X)
+    5. Kiểm chứng độc lập trên num_verify gói tin ngẫu nhiên để xác nhận khóa chính xác 100%
+
+    Tham số:
+        secret_key (Union[bytes, str, List[int]]): Khóa bí mật dùng chung (ví dụ "KEY_1" = 5 byte).
+        samples_per_byte (int): Số lượng gói tin IV yếu thu thập cho mỗi byte khóa (mặc định 600).
+        p0 (int): Byte bản rõ đầu tiên đã biết trước (mặc định 0xAA, tiêu đề SNAP/LLC).
+        num_verify (int): Số gói kiểm chứng độc lập ở giai đoạn cuối (mặc định 50).
+        seed (Optional[int]): Hạt giống ngẫu nhiên (mặc định 42 để kết quả tái lập chuẩn xác).
+
+    Trả về:
+        FMSAttackResult: Đối tượng chứa khóa khôi phục, chi tiết phiếu bầu và tỷ lệ kiểm chứng.
+    """
+    t_start = time.perf_counter()
+
+    if isinstance(secret_key, str):
+        sec_key_bytes = secret_key.encode("utf-8")
+    elif isinstance(secret_key, list):
+        sec_key_bytes = bytes(secret_key)
+    else:
+        sec_key_bytes = secret_key
+
+    if not sec_key_bytes:
+        raise ValueError("Khóa bí mật không được để trống.")
+
+    rng = random.Random(seed) if seed is not None else random.Random()
+    recovered: List[int] = []
+    byte_results: List[FMSByteResult] = []
+    collected_packets: List[Tuple[List[int], int]] = []
+
+    key_len = len(sec_key_bytes)
+
+    # Lặp qua từng byte của khóa bí mật K[B] (B = 0..key_len - 1)
+    for B in range(key_len):
+        votes = [0] * 256
+        for _ in range(samples_per_byte):
+            X = rng.randint(0, 255)
+            # Lớp IV yếu kinh điển: (A + 3, 0xFF, X)
+            iv = [B + 3, 0xFF, X]
+            packet_key = bytes(iv) + sec_key_bytes
+            # Mã hóa gói tin thực tế bằng RC4 chuẩn
+            z0_true = rc4_crypt(bytes(1), packet_key)[0]
+            c0 = z0_true ^ p0
+            collected_packets.append((iv, c0))
+
+            # Phía kẻ tấn công: chỉ dùng thông tin quan sát được trên mạng (IV và C0)
+            z0_observed = c0 ^ p0
+            known_bytes = iv + recovered
+            s_state, j_state = fms_partial_ksa(known_bytes)
+            i_round = len(known_bytes)  # bằng B + 3
+
+            # Bỏ phiếu cho 256 ứng viên byte khóa
+            for g in range(256):
+                if fms_predict_first_output(s_state, j_state, i_round, g) == z0_observed:
+                    votes[g] += 1
+
+        ranked = sorted(range(256), key=lambda g: votes[g], reverse=True)
+        best = ranked[0]
+        recovered.append(best)
+
+        top_candidates = [(g, votes[g]) for g in ranked[:5]]
+        true_b = sec_key_bytes[B]
+        byte_results.append(
+            FMSByteResult(
+                byte_index=B,
+                true_byte=true_b,
+                recovered_byte=best,
+                matched=(best == true_b),
+                top_votes=votes[best],
+                total_samples=samples_per_byte,
+                top_candidates=top_candidates,
+                all_votes=list(votes),
+            )
+        )
+
+    # Giai đoạn 5: Kiểm chứng khóa ứng viên trên num_verify gói ngẫu nhiên
+    verify_sample_size = min(num_verify, len(collected_packets))
+    sample_check = rng.sample(collected_packets, verify_sample_size) if verify_sample_size > 0 else []
+    verified_count = 0
+    rec_bytes = bytes(recovered)
+
+    for iv, c0 in sample_check:
+        cand_packet_key = bytes(iv) + rec_bytes
+        z0_pred = rc4_crypt(bytes(1), cand_packet_key)[0]
+        if (z0_pred ^ p0) == c0:
+            verified_count += 1
+
+    t_end = time.perf_counter()
+    all_matched = (rec_bytes == sec_key_bytes)
+
+    return FMSAttackResult(
+        secret_key_bytes=sec_key_bytes,
+        recovered_key_bytes=rec_bytes,
+        all_matched=all_matched,
+        samples_per_byte=samples_per_byte,
+        p0_byte=p0,
+        byte_results=byte_results,
+        verified_packets=verified_count,
+        total_verified_packets=verify_sample_size,
+        elapsed_ms=round((t_end - t_start) * 1000.0, 2),
+        collected_packets_count=len(collected_packets),
+    )
+
 

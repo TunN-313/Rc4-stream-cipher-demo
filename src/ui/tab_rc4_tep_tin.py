@@ -1,8 +1,8 @@
-"""Quy trình xử lý tệp tin và hình ảnh với hệ mã dòng RC4 (src/ui/file_pipeline.py).
+"""Quy trình xử lý tệp tin và hình ảnh với hệ mã dòng RC4 (src/ui/tab_rc4_tep_tin.py).
 
-File này được gọi bởi tab_rc4_file hoặc layout.py để dựng tab 'Ảnh & Tệp'.
-File gọi đến module src/core/rc4.py (hàm rc4_crypt_chunks) để mã hóa/giải mã theo khối,
-gọi src/core/keys.py để sinh và kiểm tra khóa, và dùng thư viện PIL để thẩm định ảnh.
+File này được gọi bởi khung_giao_dien.py để dựng tab 'Ảnh & Tệp'.
+File gọi đến module src/core/rc4_chuan.py (hàm rc4_crypt_chunks) để mã hóa/giải mã theo khối,
+gọi src/core/quan_ly_khoa.py để sinh và kiểm tra khóa, và dùng thư viện PIL để thẩm định ảnh.
 Chia quy trình thành 3 bước độc lập: Nạp tệp -> Mã hóa Streaming -> Giải mã & Đối chiếu.
 """
 
@@ -20,9 +20,9 @@ from typing import Any, Dict, Optional, Tuple  # dùng để khai báo gợi ý 
 from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
 from PIL import Image  # dùng để đọc, kiểm định định dạng ảnh và tạo ảnh nhiễu nhị phân
 
-from src.core.keys import khoa_tu_chuoi, khoa_tu_hex, sinh_khoa_rc4  # file nội bộ: sinh và phân tích khóa
-from src.core.encoding import bytes_sang_hex  # file nội bộ: chuyển đổi mảng byte sang chuỗi Hex
-from src.core.rc4 import rc4_crypt_chunks  # file nội bộ: generator mã hóa RC4 theo từng khối nhỏ
+from src.core.quan_ly_khoa import khoa_tu_chuoi, khoa_tu_hex, sinh_khoa_rc4  # file nội bộ: sinh và phân tích khóa
+from src.core.chuyen_doi_du_lieu import bytes_sang_hex  # file nội bộ: chuyển đổi mảng byte sang chuỗi Hex
+from src.core.rc4_chuan import rc4_crypt_chunks  # file nội bộ: generator mã hóa RC4 theo từng khối nhỏ
 
 MAX_BYTES: int = 8 * 1024 * 1024  # Giới hạn kích thước tệp tối đa cho phép tải lên là 8 MiB
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}  # Tập các đuôi tệp ảnh
@@ -152,12 +152,12 @@ def get_default_text_bytes() -> bytes:
     return "Hệ mã dòng RC4 - An toàn và Bảo mật Thông tin".encode("utf-8")
 
 
-def build_file_pipeline() -> None:
+def dung_tab_rc4_tep_tin() -> None:
     """Xây dựng giao diện Quy trình Xử lý Tệp (File Pipeline) 3 bước tách rời.
 
     Tham số: Không có.
     Giá trị trả về: Không có (dựng các thành phần trực tiếp lên giao diện NiceGUI).
-    Ví dụ: build_file_pipeline()
+    Ví dụ: dung_tab_rc4_tep_tin()
     """
     # Biến trạng thái state: lưu trữ toàn bộ dữ liệu tạm thời của phiên làm việc gồm:
     # tên tệp (name), byte bản rõ gốc (original), byte bản mã (encrypted), byte sau giải mã (decrypted),
@@ -852,3 +852,6 @@ def build_file_pipeline() -> None:
         file_state["decrypted"] = None
         file_state["is_rc4_loaded"] = False
         render_step1_preview()
+
+
+

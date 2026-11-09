@@ -1,5 +1,5 @@
 """
-Bộ kiểm thử tự động toàn diện dự án RC4 Lab (tests/test_rc4_lab.py)
+Bộ kiểm thử tự động toàn diện dự án RC4 Lab (tests/test_kiem_thu_toan_dien.py)
 Kiểm tra độ chính xác của thuật toán RC4/TinyRC4, stream chunk, sinh khóa và giao diện.
 Được gọi bởi: công cụ kiểm thử pytest hoặc lệnh unittest khi chạy CI/CD và chấm điểm.
 Gọi đến: toàn bộ các module trong src/core/ và các phân hệ giao diện trong src/ui/.
@@ -21,18 +21,24 @@ from nicegui.elements.upload_files import create_file_upload  # dùng để gi�
 from nicegui.testing import User  # dùng để đóng vai người dùng tương tác tự động với trình duyệt
 
 import src.core  # file nội bộ của dự án: gói lõi thuật toán mật mã
-from src.core.analysis import (  # file nội bộ của dự án: phân tích an toàn và đo hiệu năng
+from src.core.phan_tich_an_toan import (  # file nội bộ của dự án: phân tích an toàn và đo hiệu năng
+    fms_partial_ksa,
+    fms_predict_first_output,
     keystream_bias_counts,
     score_readable,
+    simulate_fms_wep_attack,
     simulate_keystream_reuse_attack,
 )
-from src.core.encoding import (  # file nội bộ của dự án: chuyển đổi bytes, hex và số 3-bit
+from src.core.chuyen_doi_du_lieu import (  # file nội bộ của dự án: chuyển đổi bytes, hex và số 3-bit
     bytes_sang_hex,
     bytes_sang_so,
     hex_sang_bytes,
+    kiem_tra_giai_ma_utf8_ban_ma,
+    phan_tich_ky_tu_utf8,
     so_sang_bytes,
+    trace_rc4_utf8_xor,
 )
-from src.core.keys import (  # file nội bộ của dự án: sinh và xác thực khóa bí mật
+from src.core.quan_ly_khoa import (  # file nội bộ của dự án: sinh và xác thực khóa bí mật
     KHOA_TOI_DA_RC4,
     KHOA_TOI_DA_TINY,
     khoa_tu_chuoi,
@@ -40,13 +46,15 @@ from src.core.keys import (  # file nội bộ của dự án: sinh và xác th�
     sinh_khoa_rc4,
     sinh_khoa_tiny,
 )
-from src.core.models import CribCandidate, KeystreamAttackResult  # file nội bộ: cấu trúc dữ liệu kết quả
-from src.core.rc4 import rc4_crypt, rc4_crypt_chunks  # file nội bộ của dự án: thuật toán mã hóa RC4
-from src.core.tiny_rc4 import run_tiny_rc4  # file nội bộ của dự án: thuật toán TinyRC4 3-bit
-import src.ui.file_pipeline as file_pipeline  # file nội bộ của dự án: quy trình mã hóa tệp 3 bước
-from src.ui.file_pipeline import build_file_pipeline  # file nội bộ của dự án: giao diện mã hóa tệp
-from src.ui.tab_attack_bench import build_tab_attack_bench  # file nội bộ của dự án: tab thám mã
-from src.ui.tab_testing import run_all_verification_cases  # file nội bộ của dự án: bộ vector kiểm thử
+from src.core.mo_hinh_du_lieu import CribCandidate, FMSAttackResult, KeystreamAttackResult  # file nội bộ: cấu trúc dữ liệu kết quả
+from src.core.rc4_chuan import rc4_crypt, rc4_crypt_chunks  # file nội bộ của dự án: thuật toán mã hóa RC4
+from src.core.rc4_thu_nho import run_tiny_rc4  # file nội bộ của dự án: thuật toán TinyRC4 3-bit
+import src.ui.tab_rc4_tep_tin as file_pipeline  # file nội bộ của dự án: quy trình mã hóa tệp 3 bước
+from src.ui.tab_rc4_tep_tin import dung_tab_rc4_tep_tin  # file nội bộ của dự án: giao diện mã hóa tệp
+from src.ui.khung_giao_dien import dung_khung_giao_dien  # file nội bộ của dự án: bố cục giao diện chính
+from src.ui.tab_tham_ma import dung_tab_tham_ma  # file nội bộ của dự án: tab thám mã
+from src.ui.tab_rc4_van_ban import dung_tab_rc4_van_ban  # file nội bộ của dự án: tab mã hóa văn bản UTF-8
+from src.ui.tab_kiem_thu import dung_tab_kiem_thu, chay_tat_ca_ca_kiem_thu  # file nội bộ: giao diện & vector kiểm thử
 
 pytest_plugins = ["nicegui.testing.user_plugin"]  # plugin của NiceGUI hỗ trợ người dùng ảo kiểm thử
 
@@ -85,11 +93,16 @@ class TestRC4Core(unittest.TestCase):
         self.assertEqual(dec.output_text, "BAG")
 
     def test_all_verification_vectors(self) -> None:
-        """Kiểm tra toàn bộ 8 vector kiểm thử nhằm bảo đảm tính tuân thủ tiêu chuẩn mật mã quốc tế."""
-        results = run_all_verification_cases()
-        self.assertGreaterEqual(len(results), 8)
+        """Kiểm tra toàn bộ 20 ca kiểm thử chuẩn hóa theo 4 bảng Chương 4."""
+        results = chay_tat_ca_ca_kiem_thu()
+        self.assertEqual(len(results), 20)
+        test_ids = [r.test_id for r in results]
+        self.assertIn("TINY-01", test_ids)
+        self.assertIn("RC4-01", test_ids)
+        self.assertIn("DATA-01", test_ids)
+        self.assertIn("SPECIAL-01", test_ids)
         for case in results:
-            self.assertTrue(case.passed, f"Ca kiểm thử thất bại: {case.name}")
+            self.assertTrue(case.passed, f"Ca kiểm thử thất bại: {case.test_id} - {case.name}")
 
     def test_binary_image_encryption_roundtrip(self) -> None:
         """Kiểm tra mã hóa/giải mã ảnh nhị phân nhằm đảm bảo dữ liệu gốc được khôi phục 100% toàn vẹn."""
@@ -463,6 +476,89 @@ def test_streams_equal():
 
 
 # =====================================================================
+# 4b. Tấn công khôi phục khóa FMS trong WEP (Mục 2.7 & 2.8)
+# =====================================================================
+
+def test_fms_partial_ksa_and_predict():
+    """Kiểm tra mô phỏng KSA từng phần và dự đoán byte đầu ra Z0 của FMS."""
+    iv = [3, 0xFF, 42]
+    S, j = fms_partial_ksa(iv)
+    assert len(S) == 256
+    # Sau vòng 1 với key=0xFF, S[1] phải bằng 0 theo điều kiện resolved
+    assert S[1] == 0
+    # Kiểm tra hàm dự đoán không làm biến dạng mảng S (swap-back thành công)
+    original_S = list(S)
+    pred = fms_predict_first_output(S, j, i_round=3, guess=75)
+    assert 0 <= pred <= 255
+    assert S == original_S
+
+
+def test_fms_attack_reproduces_md_table_seed42():
+    """
+    Kiểm tra thuật toán FMS tái lập chính xác 100% bảng kết quả thực nghiệm trong tài liệu mục 2.8.5.
+    Khóa bí mật: b'KEY_1', 600 mẫu/byte, seed=42 -> khôi phục b'KEY_1' và 50/50 gói kiểm chứng khớp.
+    """
+    res: FMSAttackResult = simulate_fms_wep_attack(
+        secret_key="KEY_1",
+        samples_per_byte=600,
+        p0=0xAA,
+        num_verify=50,
+        seed=42,
+    )
+    assert res.all_matched is True
+    assert res.recovered_key_bytes == b"KEY_1"
+    assert res.verified_packets == 50
+    assert res.total_verified_packets == 50
+    assert len(res.byte_results) == 5
+
+    # Đối chiếu chính xác các giá trị byte và số phiếu dẫn đầu theo Bảng 2.8.5:
+    # K[0]: 'K' (75), 31 phiếu
+    assert res.byte_results[0].true_byte == 75
+    assert res.byte_results[0].recovered_byte == 75
+    assert res.byte_results[0].top_votes == 31
+    assert res.byte_results[0].matched is True
+
+    # K[1]: 'E' (69), 23 phiếu
+    assert res.byte_results[1].true_byte == 69
+    assert res.byte_results[1].recovered_byte == 69
+    assert res.byte_results[1].top_votes == 23
+    assert res.byte_results[1].matched is True
+
+    # K[2]: 'Y' (89), 31 phiếu
+    assert res.byte_results[2].true_byte == 89
+    assert res.byte_results[2].recovered_byte == 89
+    assert res.byte_results[2].top_votes == 31
+    assert res.byte_results[2].matched is True
+
+    # K[3]: '_' (95), 41 phiếu
+    assert res.byte_results[3].true_byte == 95
+    assert res.byte_results[3].recovered_byte == 95
+    assert res.byte_results[3].top_votes == 41
+    assert res.byte_results[3].matched is True
+
+    # K[4]: '1' (49), 17 phiếu (byte sít sao)
+    assert res.byte_results[4].true_byte == 49
+    assert res.byte_results[4].recovered_byte == 49
+    assert res.byte_results[4].top_votes == 17
+    assert res.byte_results[4].matched is True
+
+
+def test_fms_attack_custom_key():
+    """Kiểm tra khôi phục thành công với khóa tùy chỉnh khác b'TEST1'."""
+    res = simulate_fms_wep_attack(
+        secret_key=b"TEST1",
+        samples_per_byte=800,
+        p0=0xAA,
+        num_verify=30,
+        seed=123,
+    )
+    assert res.all_matched is True
+    assert res.recovered_key_bytes == b"TEST1"
+    assert res.verified_packets == 30
+
+
+
+# =====================================================================
 # 5. Thiên lệch dòng khóa
 # =====================================================================
 
@@ -533,17 +629,38 @@ if not hasattr(file_pipeline, "_sample_bytes"):
 
 
 def _page_pipeline() -> None:
-    """Đăng ký route '/' với build_file_pipeline phục vụ kiểm thử giao diện."""
+    """Đăng ký route '/' với dung_tab_rc4_tep_tin phục vụ kiểm thử giao diện."""
     @ui.page("/")
     def index() -> None:
-        build_file_pipeline()
+        dung_tab_rc4_tep_tin()
 
 
 def _page_attack() -> None:
-    """Đăng ký route '/' với build_tab_attack_bench phục vụ kiểm thử giao diện."""
+    """Đăng ký route '/' với dung_tab_tham_ma phục vụ kiểm thử giao diện."""
     @ui.page("/")
     def index() -> None:
-        build_tab_attack_bench()
+        dung_tab_tham_ma()
+
+
+def _page_rc4_text() -> None:
+    """Đăng ký route '/' với dung_tab_rc4_van_ban phục vụ kiểm thử giao diện phân hệ văn bản UTF-8."""
+    @ui.page("/")
+    def index() -> None:
+        dung_tab_rc4_van_ban()
+
+
+def _page_layout() -> None:
+    """Đăng ký route '/' với dung_khung_giao_dien phục vụ kiểm thử toàn bộ khung giao diện."""
+    @ui.page("/")
+    def index() -> None:
+        dung_khung_giao_dien()
+
+
+def _page_testing() -> None:
+    """Đăng ký route '/' với dung_tab_kiem_thu phục vụ kiểm thử giao diện phân hệ đối chiếu chuẩn."""
+    @ui.page("/")
+    def index() -> None:
+        dung_tab_kiem_thu()
 
 
 async def _upload_helper(
@@ -754,6 +871,60 @@ async def test_attack_ui_toggle_p2_and_custom_crib(user: User) -> None:
 
 
 @pytest.mark.asyncio
+async def test_attack_ui_three_practical_cards(user: User) -> None:
+    """Kiểm tra Tab 4 hiển thị đúng 3 phân hệ tấn công thực hành và đã loại bỏ hoàn toàn thẻ đo hiệu năng."""
+    _page_attack()
+    await user.open("/")
+
+    # Phân hệ 1: Tấn công FMS khôi phục khóa K
+    await user.should_see("1. Tấn Công Bẻ Khóa FMS trong WEP")
+    await user.should_see("Chạy Bẻ Khóa FMS")
+
+    # Phân hệ 2: Tấn công dùng lại dòng khóa (Two-Time Pad)
+    await user.should_see("2. Tấn Công Dùng Lại Dòng Khóa (Two-Time Pad)")
+    await user.should_see("Thực hiện Thám mã Known-Plaintext")
+
+    # Phân hệ 3: Thiên lệch dòng khóa Mantin-Shamir
+    await user.should_see("3. Thiên Lệch Dòng Khóa (Mantin–Shamir)")
+    await user.should_see("Chạy thực nghiệm")
+
+
+@pytest.mark.asyncio
+async def test_layout_navigation_structure(user: User) -> None:
+    """Kiểm tra thanh menu điều hướng chỉ gồm 4 phân hệ thực hành và đã loại bỏ hoàn toàn tab Lý thuyết."""
+    _page_layout()
+    await user.open("/")
+
+    await user.should_see("TinyRC4 (3-bit)")
+    await user.should_see("RC4 Chuẩn & File")
+    await user.should_see("Kiểm Thử (RFC 6229)")
+    await user.should_see("Thám Mã & Tấn Công")
+
+
+@pytest.mark.asyncio
+async def test_tab_testing_ui_elements(user: User) -> None:
+    """Kiểm tra giao diện Tab 3 hiển thị đầy đủ 20 ca kiểm thử, thẻ môi trường, bộ lọc nhóm và khối tùy biến."""
+    _page_testing()
+    await user.open("/")
+
+    await user.should_see("Bộ Kiểm Thử Tự Động & Đối Chiếu Chuẩn")
+    await user.should_see("20 Ca Kiểm Thử")
+    await user.should_see("20/20 (100%)")
+    await user.should_see("Thông Số Môi Trường Thực Nghiệm")
+    await user.should_see("Kiểm Thử Ca Tùy Biến (Mục 4.4 Demo Dữ Liệu Thực)")
+    await user.should_see("Bản rõ (Plaintext P)")
+    await user.should_see("Khóa bí mật (Key K)")
+    await user.should_see("Kiểm Chứng Ngay")
+    await user.should_see("Thêm Vào Bảng")
+    await user.should_see("Lọc nhóm ca kiểm thử:")
+
+    # Thử bấm "Kiểm Chứng Ngay" cho ca tùy biến mặc định
+    user.find(kind=ui.button, content="Kiểm Chứng Ngay").click()
+    await user.should_see("Bản mã sinh ra:")
+    await user.should_see("Dòng khóa (Keystream):")
+
+
+@pytest.mark.asyncio
 async def test_bias_card_ui_experiment(user: User) -> None:
     """Kiểm tra thẻ thực nghiệm thiên lệch Mantin-Shamir nhằm trực quan hóa kết quả thống kê xác suất."""
     _page_attack()
@@ -777,6 +948,212 @@ async def test_bias_card_ui_experiment(user: User) -> None:
     # Chờ kết quả hiển thị
     await user.should_see("Mức đều lý thuyết = 1/256 = 0,0039")
     await user.should_see("P(byte = 0)")
+
+
+@pytest.mark.asyncio
+async def test_fms_ui_elements(user: User) -> None:
+    """Kiểm tra thẻ mô phỏng tấn công bẻ khóa FMS WEP trên giao diện Tab 4."""
+    _page_attack()
+    await user.open("/")
+
+    # Kiểm tra tiêu đề và các thành phần chính của FMS
+    await user.should_see("Tấn Công Bẻ Khóa FMS trong WEP")
+    await user.should_see("Chạy Bẻ Khóa FMS")
+    await user.should_see("Cố định seed=42")
+    await user.should_see("Khóa bí mật K")
+
+    # Kiểm tra kết quả tự động chạy lần đầu (seed=42)
+    await user.should_see("Trùng khớp 100%")
+    await user.should_see("Kiểm chứng độc lập")
+    await user.should_see("Bảng Kết Quả Từng Byte Khóa")
+
+    tbl = next(elem for elem in user.find(kind=ui.table).elements if "byte_name" in str(elem._props.get("columns")))
+    assert len(tbl.rows) == 5
+    assert tbl.rows[0]["byte_name"] == "K[0]"
+    assert tbl.rows[0]["true_val"] == "75 (K)"
+    assert [s.get("byte_name") for s in tbl.selected] == ["K[0]"]
+
+
+@pytest.mark.asyncio
+async def test_fms_p0_validation_error(user: User) -> None:
+    """Kiểm tra cảnh báo khi người dùng nhập P0 không hợp lệ hoặc lớn hơn 255."""
+    _page_attack()
+    await user.open("/")
+
+    p0_input = next(
+        elem for elem in user.find(kind=ui.input).elements
+        if "Byte bản rõ đầu P0" in (elem._props.get("label") or "")
+    )
+    p0_input.set_value("821")
+
+    user.find(kind=ui.button, content="Chạy Bẻ Khóa FMS").click()
+    await user.should_see("khoảng 0..255")
+
+
+@pytest.mark.asyncio
+async def test_fms_ui_run_custom_key_july(user: User) -> None:
+    """Kiểm tra người dùng đổi khóa thành 'JULY' và chạy bẻ khóa FMS cập nhật giao diện mượt mà."""
+    _page_attack()
+    await user.open("/")
+
+    key_input = next(
+        elem for elem in user.find(kind=ui.input).elements
+        if "Khóa bí mật K" in (elem._props.get("label") or "")
+    )
+    key_input.set_value("JULY")
+
+    # Giảm số mẫu xuống 150 để test chạy nhanh trong unit test
+    samples_input = next(
+        elem for elem in user.find(kind=ui.number).elements
+        if "Số mẫu IV yếu / byte" in (elem._props.get("label") or "")
+    )
+    samples_input.set_value(150)
+
+    user.find(kind=ui.button, content="Chạy Bẻ Khóa FMS").click()
+    await user.should_see("Đã hoàn thành bẻ khóa FMS")
+    await user.should_see("b'JULY'")
+
+    tbl = next(elem for elem in user.find(kind=ui.table).elements if "byte_name" in str(elem._props.get("columns")))
+    assert len(tbl.rows) == 4
+    assert tbl.rows[0]["byte_name"] == "K[0]"
+    assert "74 (J)" in tbl.rows[0]["true_val"]
+    assert tbl.rows[1]["byte_name"] == "K[1]"
+    assert "85 (U)" in tbl.rows[1]["true_val"]
+    assert tbl.rows[2]["byte_name"] == "K[2]"
+    assert "76 (L)" in tbl.rows[2]["true_val"]
+    assert tbl.rows[3]["byte_name"] == "K[3]"
+    assert "89 (Y)" in tbl.rows[3]["true_val"]
+
+
+# =============================================================================
+# CÁC CA KIỂM THỬ ĐẶC TẢ UTF-8 TRONG RC4 (MỤC 2.1.4 GIÁO TRÌNH)
+# =============================================================================
+
+
+class TestUtf8Rc4Spec(unittest.TestCase):
+    """Bộ kiểm thử kiểm chứng tính toán phân rã UTF-8 và bảng diễn giải 8-bit XOR theo Mục 2.1.4."""
+
+    def test_utf8_breakdown_sample_a_a(self) -> None:
+        """Kiểm tra phân tích chuỗi 'Aà' thành các byte và mẫu bit chuẩn Bảng 2.2, 2.3, 2.4."""
+        chars = phan_tich_ky_tu_utf8("Aà")
+        self.assertEqual(len(chars), 2)
+
+        # Ký tự 'A' (1 byte)
+        cA = chars[0]
+        self.assertEqual(cA.char, "A")
+        self.assertEqual(cA.codepoint, "U+0041")
+        self.assertEqual(cA.codepoint_dec, 65)
+        self.assertEqual(cA.byte_count, 1)
+        self.assertEqual(cA.pattern, "0xxxxxxx")
+        self.assertEqual(cA.hex_str, "41")
+        self.assertEqual(cA.bin_str, "01000001")
+        self.assertEqual(cA.byte_dec_list, [65])
+
+        # Ký tự 'à' (2 byte)
+        ca_grave = chars[1]
+        self.assertEqual(ca_grave.char, "à")
+        self.assertEqual(ca_grave.codepoint, "U+00E0")
+        self.assertEqual(ca_grave.codepoint_dec, 224)
+        self.assertEqual(ca_grave.byte_count, 2)
+        self.assertEqual(ca_grave.pattern, "110xxxxx 10xxxxxx")
+        self.assertEqual(ca_grave.data_bits, "00011 100000")
+        self.assertEqual(ca_grave.bin_str, "11000011 10100000")
+        self.assertEqual(ca_grave.hex_str, "C3 A0")
+        self.assertEqual(ca_grave.byte_dec_list, [195, 160])
+
+    def test_utf8_rc4_trace_rfc6229(self) -> None:
+        """Kiểm chứng bảng diễn giải 8-bit XOR chuỗi 'Aà' với khóa RFC 6229 [1, 2, 3, 4, 5] (Bảng 2.5)."""
+        key = bytes([1, 2, 3, 4, 5])
+        steps = trace_rc4_utf8_xor("Aà", key)
+
+        # Chuỗi 'Aà' gồm 2 ký tự nhưng 3 byte: m = 3 bước XOR
+        self.assertEqual(len(steps), 3)
+
+        # Bước r=1: P_1 = 65 ('A'), Z_1 = 178 -> C_1 = 243 (F3)
+        self.assertEqual(steps[0].r, 1)
+        self.assertEqual(steps[0].p_val, 65)
+        self.assertEqual(steps[0].z_val, 178)
+        self.assertEqual(steps[0].c_val, 243)
+        self.assertEqual(steps[0].c_hex, "F3")
+        self.assertEqual(steps[0].p_bin, "01000001")
+        self.assertEqual(steps[0].z_bin, "10110010")
+        self.assertEqual(steps[0].c_bin, "11110011")
+
+        # Bước r=2: P_2 = 195 ('à' byte 1), Z_2 = 57 -> C_2 = 250 (FA)
+        self.assertEqual(steps[1].r, 2)
+        self.assertEqual(steps[1].p_val, 195)
+        self.assertEqual(steps[1].z_val, 57)
+        self.assertEqual(steps[1].c_val, 250)
+        self.assertEqual(steps[1].c_hex, "FA")
+        self.assertEqual(steps[1].p_bin, "11000011")
+        self.assertEqual(steps[1].z_bin, "00111001")
+        self.assertEqual(steps[1].c_bin, "11111010")
+
+        # Bước r=3: P_3 = 160 ('à' byte 2), Z_3 = 99 -> C_3 = 195 (C3)
+        self.assertEqual(steps[2].r, 3)
+        self.assertEqual(steps[2].p_val, 160)
+        self.assertEqual(steps[2].z_val, 99)
+        self.assertEqual(steps[2].c_val, 195)
+        self.assertEqual(steps[2].c_hex, "C3")
+        self.assertEqual(steps[2].p_bin, "10100000")
+        self.assertEqual(steps[2].z_bin, "01100011")
+        self.assertEqual(steps[2].c_bin, "11000011")
+
+        # Toàn bộ bản mã C = [243, 250, 195], Hex = 'F3FAC3'
+        cipher_bytes = bytes([s.c_val for s in steps])
+        self.assertEqual(list(cipher_bytes), [243, 250, 195])
+        self.assertEqual(cipher_bytes.hex().upper(), "F3FAC3")
+
+    def test_utf8_decode_probe_failure(self) -> None:
+        """Kiểm chứng thí nghiệm phản chứng giải mã UTF-8 trên bản mã C=[243, 250, 195] (Mục 2.1.4)."""
+        cipher_bytes = bytes([243, 250, 195])
+        ok, msg, failure = kiem_tra_giai_ma_utf8_ban_ma(cipher_bytes)
+
+        self.assertFalse(ok)
+        self.assertIsNotNone(failure)
+        assert failure is not None
+
+        # Byte đầu tiên gây lỗi ở vị trí 0 (giá trị 243, tiền tố 11110)
+        self.assertEqual(failure.err_index, 0)
+        self.assertEqual(failure.err_byte_val, 243)
+        self.assertEqual(failure.err_byte_bin, "11110011")
+        self.assertTrue(failure.err_byte_bin.startswith("11110"))
+
+        # Byte kế tiếp (giá trị 250, bắt đầu bằng 111110 != 10)
+        self.assertEqual(failure.next_byte_val, 250)
+        self.assertEqual(failure.next_byte_bin, "11111010")
+        self.assertFalse(failure.next_byte_bin.startswith("10"))
+
+        # Kiểm tra nội dung chẩn đoán
+        self.assertIn("11110", failure.violation_reason)
+        self.assertIn("111110", failure.violation_reason)
+        self.assertIn("UnicodeDecodeError", msg)
+
+
+@pytest.mark.asyncio
+async def test_utf8_tab_rc4_text_ui(user: User) -> None:
+    """Kiểm tra toàn bộ các thành phần hiển thị của Card 1 và Card 2 trong Tab RC4 Văn bản."""
+    _page_rc4_text()
+    await user.open("/")
+
+    # Card 1: Mã Hóa & Giải Mã Văn Bản Tổng Quát
+    await user.should_see("1. Mã Hóa & Giải Mã Văn Bản (UTF-8)")
+    await user.should_see("Mã hóa & Kiểm tra Giải mã")
+    await user.should_see("Bản mã (Hexadecimal)")
+    await user.should_see("Bản mã (Base64)")
+
+    # Card 2: Minh Họa Biểu Diễn UTF-8 Trong RC4
+    await user.should_see("Minh Họa Biểu Diễn UTF-8 Trong RC4")
+    await user.should_see("MÔ PHỎNG UTF-8")
+
+    # Bảng 1 và Bảng 2
+    await user.should_see("Bảng 1: Phân Rã Cấu Trúc Biểu Diễn Ký Tự Sang UTF-8")
+    await user.should_see("Bảng 2: Diễn Giải Từng Byte Qua Lõi RC4")
+    await user.should_see("Bản mã C = [250, 88, 11, 100] (Hex: FA580B64)")
+
+    # Giải thích ngắn gọn tại sao không giải mã trực tiếp
+    await user.should_see("Tại sao không thể giải mã UTF-8 trực tiếp trên bản mã?")
+    await user.should_see("UnicodeDecodeError")
 
 
 if __name__ == "__main__":

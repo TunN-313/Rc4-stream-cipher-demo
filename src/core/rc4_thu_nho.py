@@ -1,8 +1,8 @@
 """
-Thuật toán mô phỏng TinyRC4 thu nhỏ 3-bit (src/core/tiny_rc4.py)
+Thuật toán mô phỏng TinyRC4 thu nhỏ 3-bit (src/core/rc4_thu_nho.py)
 Minh họa trực quan từng phép toán KSA và PRGA trên mảng S gồm 8 phần tử (0..7) và modulo 8.
-Được gọi bởi: phân hệ trực quan hóa từng bước TinyRC4 (tab_tiny_rc4) và test suite.
-Gọi đến: src.core.models (chứa bảng chữ cái và các lớp lưu trữ kết quả).
+Được gọi bởi: phân hệ trực quan hóa từng bước TinyRC4 (tab_rc4_thu_nho) và test suite.
+Gọi đến: src.core.mo_hinh_du_lieu (chứa bảng chữ cái và các lớp lưu trữ kết quả).
 Thuật ngữ: modulo 8 là phép chia lấy dư quay vòng 8 số (0..7), ví dụ (5 + 4) % 8 = 1;
 S-box 3-bit là mảng hoán vị S ban đầu [0, 1, 2, 3, 4, 5, 6, 7];
 XOR là phép cộng modulo 2 trên từng bit (1 ^ 0 = 1, 1 ^ 1 = 0).
@@ -11,7 +11,7 @@ XOR là phép cộng modulo 2 trên từng bit (1 ^ 0 = 1, 1 ^ 1 = 0).
 from __future__ import annotations  # dùng để kích hoạt tính năng kiểm tra kiểu dữ liệu tĩnh
 from typing import List, Tuple, Union  # dùng để định nghĩa kiểu dữ liệu danh sách, bộ và kiểu kết hợp
 
-from src.core.models import (  # file nội bộ của dự án: cấu trúc lưu bước KSA, PRGA và bảng ký tự
+from src.core.mo_hinh_du_lieu import (  # file nội bộ của dự án: cấu trúc lưu bước KSA, PRGA và bảng ký tự
     INV_TINY_ALPHABET,
     TINY_ALPHABET,
     KSAStep,
@@ -107,14 +107,16 @@ def run_tiny_rc4(raw_input: str, raw_key: Union[str, List[int]]) -> TinyRC4Resul
     n_key = len(key_list)
 
     # 1. Giai đoạn Khởi tạo (KSA - Key-Scheduling Algorithm, Slide 54 & 56-58)
-    # Khởi tạo mảng hoán vị S ban đầu với 8 số 0..7: S = [0, 1, 2, 3, 4, 5, 6, 7]
+    # Khoi tao day so S va T
+    # for i = 0 to 7 do: S[i] = i; T[i] = K[i mod N]
     s_arr = [i for i in range(8)]
-    # Khởi tạo mảng T sao chép tuần hoàn khóa K: T[i] = K[i % len(K)] (ví dụ K=[2,1,3] -> T=[2,1,3,2,1,3,2,1])
     t_arr = [key_list[i % n_key] for i in range(8)]
     initial_s = list(s_arr)
     initial_t = list(t_arr)
 
     ksa_steps: List[KSAStep] = []
+    # Hoan vi day S
+    # j = 0; for i = 0 to 7 do: j = (j + S[i] + T[i]) mod 8; Swap(S[i], S[j])
     j = 0
     # Lặp qua 8 vòng (i từ 0 đến 7) để xáo mảng S bằng khóa T
     for i in range(8):
