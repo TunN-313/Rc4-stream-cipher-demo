@@ -6,8 +6,7 @@ Tab này thực hiện và hiển thị bảng đối chiếu 20 ca kiểm thử
 - Bảng 4.2.2: Kiểm thử RC4 đầy đủ (RC4-01 đến RC4-05)
 - Bảng 4.2.3: Kiểm thử với các loại dữ liệu (DATA-01 đến DATA-05)
 - Bảng 4.2.4: Kiểm thử các trường hợp đặc biệt & biên (SPECIAL-01 đến SPECIAL-06)
-Tích hợp bộ chọn nhóm 1 chạm tối ưu cho sinh viên thuyết trình, thẻ môi trường
-thực nghiệm (Mục 4.1.2) và công cụ xuất báo cáo CSV/JSON.
+Tích hợp bộ chọn nhóm 1 chạm tối ưu cho sinh viên thuyết trình và công cụ xuất báo cáo CSV/JSON.
 """
 
 from __future__ import annotations  # dùng để hỗ trợ kiểu dữ liệu mở rộng ở Python đời mới
@@ -477,40 +476,15 @@ def dung_tab_kiem_thu() -> None:
                 ui.label("RFC 6229 & Wikipedia").classes("text-xl font-extrabold text-sky-900 font-mono")
                 ui.label("Đối chiếu Slide NEU & Tiêu chuẩn quốc tế").classes("text-xs text-sky-700 mt-1")
 
-        # Thẻ thông số môi trường kiểm thử (Mục 4.1.2 Giáo trình)
-        with ui.card().classes("w-full p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2"):
-            with ui.row().classes("w-full items-center justify-between pb-1 border-b border-slate-200"):
-                with ui.row().classes("items-center gap-2"):
-                    ui.icon("terminal", size="xs").classes("text-slate-600")
-                    ui.label("Thông Số Môi Trường Thực Nghiệm (Mục 4.1.2 Báo Cáo)").classes("text-xs font-bold text-slate-800")
-                ui.badge("Tái Lập 100%", color="secondary").classes("text-3xs")
-
-            with ui.grid(columns=4).classes("w-full gap-3 text-xs"):
-                with ui.column().classes("gap-0.5"):
-                    ui.label("Hệ điều hành:").classes("text-2xs text-slate-500 font-medium")
-                    ui.label(f"{platform.system()} {platform.release()} 64-bit").classes("font-mono font-semibold text-slate-800 text-xs truncate")
-
-                with ui.column().classes("gap-0.5"):
-                    ui.label("Môi trường thực thi:").classes("text-2xs text-slate-500 font-medium")
-                    ui.label(f"Python {platform.python_version()} (Thuần 100%)").classes("font-mono font-semibold text-blue-700 text-xs truncate")
-
-                with ui.column().classes("gap-0.5"):
-                    ui.label("Công cụ kiểm thử:").classes("text-2xs text-slate-500 font-medium")
-                    ui.label("pytest 9.1 & unittest").classes("font-mono font-semibold text-emerald-700 text-xs truncate")
-
-                with ui.column().classes("gap-0.5"):
-                    ui.label("Bộ đo thời gian:").classes("text-2xs text-slate-500 font-medium")
-                    ui.label("time.perf_counter() (ms)").classes("font-mono font-semibold text-amber-700 text-xs truncate")
-
-        # Danh sách lưu các ca kiểm thử tùy biến do người dùng tự nhập (Mục 4.4)
+        # Danh sách lưu các ca kiểm thử tùy biến do người dùng tự nhập
         custom_cases: List[TestCaseComparison] = []
 
-        # Khối kiểm thử ca tùy biến (Mục 4.4 Demo Dữ Liệu Thực)
+        # Khối kiểm thử ca tùy biến
         with ui.card().classes("w-full p-4 bg-slate-50 border border-indigo-200/80 rounded-xl space-y-3"):
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-indigo-100 flex-wrap gap-2"):
                 with ui.row().classes("items-center gap-2"):
                     ui.icon("science", size="xs").classes("text-indigo-600")
-                    ui.label("Kiểm Thử Ca Tùy Biến (Mục 4.4 Demo Dữ Liệu Thực)").classes("text-xs font-bold text-indigo-950")
+                    ui.label("Kiểm Thử Ca Tùy Biến").classes("text-xs font-bold text-indigo-950")
                     ui.badge("Thực Nghiệm", color="primary").classes("text-3xs")
                 algo_toggle = ui.toggle(
                     ["RC4 Chuẩn (8-bit)", "TinyRC4 (3-bit)"],

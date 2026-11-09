@@ -37,7 +37,7 @@
 - **Trực quan hóa S-Box 16x16**: Hiển thị bảng ma trận 256 phần tử của hoán vị $S$ trước và sau giai đoạn KSA/PRGA.
 
 ### 📌 Tab 3: Bộ Kiểm Thử Tự Động & Đánh Giá Thực Nghiệm 
-- **Thẻ môi trường thực nghiệm chuẩn hóa (Mục 4.1.2)**: Hiển thị tự động thông số hệ điều hành (OS), phiên bản Python, công cụ chạy kiểm thử (pytest / Runner) và bộ đếm thời gian phân giải cao (`time.perf_counter`).
+- **Khối kiểm thử ca tùy biến**: Hỗ trợ nhập trực tiếp bản rõ và khóa để kiểm thử đối chiếu tức thì cho cả RC4 chuẩn (8-bit) và TinyRC4 (3-bit).
 - **Bộ chọn nhóm kiểm thử 1 chạm (5 chế độ lọc linh hoạt)**:
   - `Tất cả (20)`: Toàn bộ 20 kịch bản kiểm thử chuẩn hóa.
   - `1. TinyRC4 (4)`: Bộ 4 ca kiểm thử mô hình 3-bit: Khởi tạo S, KSA 8 vòng, PRGA sinh khóa và mã hóa/giải mã đối xứng (`TINY-01`..`04` - Bảng 4.2.1).
@@ -145,7 +145,7 @@ Bộ kiểm thử tự động toàn diện được đặt trong tệp `tests/t
 4. **Đặc tả & Minh họa UTF-8**: Phân rã cấu trúc Unicode/UTF-8 (Bảng 1), diễn giải từng bước 8-bit XOR (Bảng 2) và kiểm chứng cơ chế lỗi `UnicodeDecodeError` khi giải mã trực tiếp trên bản mã.
 5. **Thám mã bẻ khóa FMS WEP**: KSA từng phần trên các lớp IV yếu $(A+3, \text{0xFF}, X)$, mô phỏng bỏ phiếu thống kê tìm từng byte khóa bí mật $K$, kiểm chứng độc lập 50 gói ngẫu nhiên.
 6. **Lỗ hổng Two-Time Pad & Thiên lệch Bias**: Triệt tiêu dòng khóa $C_1 \oplus C_2$, kỹ thuật Crib-dragging, đo thiên lệch xác suất Mantin–Shamir tại byte thứ 2 của dòng khóa.
-7. **Kiểm thử giao diện (UI Tests)**: Pipeline mã hóa tệp tin/hình ảnh, giao diện Tab 3 (thẻ môi trường, bộ lọc 5 nhóm, bảng Tabulator), kiểm thử cấu trúc 3 thẻ thám mã thực hành và thanh điều hướng 4 phân hệ.
+7. **Kiểm thử giao diện (UI Tests)**: Pipeline mã hóa tệp tin/hình ảnh, giao diện Tab 3 (khối kiểm thử tùy biến, bộ lọc 5 nhóm, bảng Tabulator), kiểm thử cấu trúc 3 thẻ thám mã thực hành và thanh điều hướng 4 phân hệ.
 
 ### Lệnh chạy kiểm thử nhanh với pytest:
 ```bash

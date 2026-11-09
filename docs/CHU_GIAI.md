@@ -62,7 +62,7 @@ Các thuật ngữ và thư viện trong tài liệu bám sát mã nguồn thự
 | `src.ui.tab_rc4_tep_tin` | File nội bộ của dự án | Giao diện quy trình xử lý tệp tin và hình ảnh nhị phân qua 3 bước (Tải lên - Mã hóa - Tải về) | `src/ui/khung_giao_dien.py` |
 | `src.ui.tab_rc4_thu_nho` | File nội bộ của dự án | Giao diện trực quan hóa từng bước thuật toán TinyRC4 3-bit với các nút điều khiển | `src/ui/khung_giao_dien.py` |
 | `src.ui.tab_rc4_van_ban` | File nội bộ của dự án | Giao diện mã hóa và giải mã văn bản tiếng Việt UTF-8 bằng RC4 8-bit chuẩn | `src/ui/khung_giao_dien.py` |
-| `src.ui.tab_kiem_thu` | File nội bộ của dự án | Giao diện bộ kiểm thử tự động 20 ca chuẩn Chương 4, thẻ môi trường 4.1.2 và bộ lọc 4 nhóm | `src/ui/khung_giao_dien.py` |
+| `src.ui.tab_kiem_thu` | File nội bộ của dự án | Giao diện bộ kiểm thử tự động 20 ca chuẩn Chương 4, khối kiểm thử tùy biến và bộ lọc các nhóm | `src/ui/khung_giao_dien.py` |
 | `src.ui.tab_tham_ma` | File nội bộ của dự án | Giao diện thực nghiệm thám mã bẻ khóa FMS WEP, Two-Time Pad crib-dragging và kiểm tra thiên lệch Mantin-Shamir | `src/ui/khung_giao_dien.py` |
 
 ---
@@ -102,6 +102,6 @@ Các thuật ngữ và thư viện trong tài liệu bám sát mã nguồn thự
 | `build_fms_attack_card` | `src/ui/tab_tham_ma.py` | Dựng thẻ mô phỏng tấn công bẻ khóa FMS trong WEP, thu thập IV yếu và vẽ biểu đồ bỏ phiếu khôi phục khóa K. |
 | `dung_tab_tham_ma` | `src/ui/tab_tham_ma.py` | Dựng giao diện Tab 4: Thám mã bẻ khóa FMS WEP, dùng lại khóa Two-Time Pad bằng crib-dragging và kiểm chứng thiên lệch dòng khóa Mantin-Shamir. |
 | `dung_tab_rc4_van_ban` | `src/ui/tab_rc4_van_ban.py` | Dựng giao diện Tab 2: Mã hóa và giải mã chuỗi văn bản tiếng Việt UTF-8 bằng RC4 8-bit chuẩn. |
-| `dung_tab_kiem_thu` | `src/ui/tab_kiem_thu.py` | Dựng giao diện Tab 3: Bộ kiểm thử tự động 20 ca chuẩn Chương 4, thẻ thông số môi trường 4.1.2, bộ lọc 5 chế độ và xuất báo cáo CSV/JSON. |
+| `dung_tab_kiem_thu` | `src/ui/tab_kiem_thu.py` | Dựng giao diện Tab 3: Bộ kiểm thử tự động 20 ca chuẩn Chương 4, khối kiểm thử tùy biến, bộ lọc 5 chế độ và xuất báo cáo CSV/JSON. |
 | `dung_tab_rc4_thu_nho` | `src/ui/tab_rc4_thu_nho.py` | Dựng giao diện Tab 1: Trực quan hóa chi tiết từng bước hoán vị KSA và PRGA của thuật toán mô phỏng TinyRC4 3-bit. |
 | `chay_tat_ca_ca_kiem_thu` | `src/ui/tab_kiem_thu.py` | Thực thi toàn bộ 20 ca kiểm thử chuẩn hóa đối chiếu kết quả kỳ vọng và thực tế. |
