@@ -16,7 +16,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     # 2. Khởi chạy máy chủ web NiceGUI (ui.run lắng nghe kết nối từ trình duyệt)
     ui.run(
         title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",  # tiêu đề hiển thị trên tab trình duyệt
-        favicon="🔐",  # biểu tượng ổ khóa bảo mật trên tab trình duyệt
+        favicon="🔐",  
         port=8080,  # mở cổng dịch vụ web tại địa chỉ cục bộ http://localhost:8080
         reload=True,  # tự động nạp lại giao diện khi chỉnh sửa mã nguồn
     )

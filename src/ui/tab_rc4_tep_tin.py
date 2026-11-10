@@ -28,7 +28,7 @@ from src.core import (
     rc4_crypt_chunks,
 )
 
-MAX_BYTES: int = 8 * 1024 * 1024  # Giới hạn kích thước tệp tối đa cho phép tải lên là 8 MiB
+MAX_BYTES: int = 8 * 1024 * 1024  # Giới hạn kích thước tệp tối đa cho phép tải lên là 8 MB
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}  # Tập các đuôi tệp ảnh
 FALLBACK_1X1_PNG = (  # Ảnh mẫu PNG 1x1 pixel dự phòng khi không tìm thấy tệp ảnh trên đĩa
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
@@ -209,7 +209,7 @@ def dung_tab_rc4_tep_tin() -> None:
 
                 # ui.upload: thành phần giao diện cho phép kéo thả hoặc chọn tệp tin từ máy tính
                 ui_upload_element = ui.upload(
-                    label="Kéo thả hoặc bấm để nạp tệp (tối đa 8 MiB)",
+                    label="Kéo thả hoặc bấm để nạp tệp (tối đa 8 MB)",
                     auto_upload=True,
                     max_file_size=MAX_BYTES,
                 ).props("flat bordered").classes("w-full")
@@ -545,7 +545,7 @@ def dung_tab_rc4_tep_tin() -> None:
             """
             if len(content) > MAX_BYTES:
                 # ui.notify: thông báo nhỏ dạng pop-up hiện lên ở góc màn hình rồi tự biến mất
-                ui.notify(f"Kích thước tệp quá lớn ({len(content):,} bytes > 8 MiB)!", type="warning")
+                ui.notify(f"Kích thước tệp quá lớn ({len(content):,} bytes > 8 MB)!", type="warning")
                 return
 
             if len(content) == 0:

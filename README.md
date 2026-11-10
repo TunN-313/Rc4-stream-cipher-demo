@@ -38,12 +38,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### Bước 3: Cài đặt các thư viện phụ thuộc
+### Bước 3: Cài đặt thư viện
 ```bash
 pip install -r requirements.txt
 ```
-*Các thư viện gọn nhẹ sử dụng:*
-- `nicegui>=3.0,<4.0`: Xây dựng giao diện web trực quan bằng Python thuần.
+*Các thư viện sử dụng:*
+- `nicegui>=3.0,<4.0`: Xây dựng giao diện web trực quan bằng Python.
 - `pillow>=10.0.0`: Xử lý hình ảnh nhị phân (.png, .jpg).
 
 ### Bước 4: Khởi chạy ứng dụng
@@ -57,8 +57,6 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ## 2. Cấu Trúc Thư Mục Dự Án
 
-Cấu trúc dự án được sắp xếp theo đúng quy chuẩn khoa học, phân chia theo 4 bước xử lý nghiệp vụ:
-
 ```text
 RC4-demo/
 ├── src/                                # [1] Mã nguồn chính của dự án
@@ -68,14 +66,15 @@ RC4-demo/
 │   │   ├── buoc3_sinh_so_prga.py       #     ~ BƯỚC 3: Sinh keystream PRGA, TinyRC4 & RC4 chuẩn (mã hóa XOR)
 │   │   ├── buoc4_tham_ma_be_khoa.py    #     ~ BƯỚC 4: Thám mã bẻ khóa FMS WEP & Benchmark hiệu năng
 │   │   └── __init__.py                 #     Điểm xuất toàn bộ hàm và cấu trúc dữ liệu
-│   └── ui/                             #     Module giao diện người dùng (UI)
-│       ├── khung_giao_dien.py          #     Khung chính + Thanh Tab ngang học thuật
-│       ├── tab_rc4_thu_nho.py          #     Tab 1: Trực quan hóa TinyRC4 3-bit
-│       ├── tab_rc4_van_ban.py          #     Tab 2: Mã hóa văn bản UTF-8
-│       ├── tab_rc4_tep_tin.py          #     Tab 3: Mã hóa tệp tin & ảnh nhị phân
-│       ├── tab_kiem_thu.py             #     Tab 4: Kiểm thử thủ công
-│       ├── tab_tham_ma.py              #     Tab 5: Phòng thực nghiệm thám mã bẻ khóa FMS WEP
-│       └── __init__.py
+│   ├── ui/                             #     Module giao diện người dùng (UI)
+│   │   ├── khung_giao_dien.py          #     Khung chính + Thanh Tab ngang học thuật
+│   │   ├── tab_rc4_thu_nho.py          #     Tab 1: Trực quan hóa TinyRC4 3-bit
+│   │   ├── tab_rc4_van_ban.py          #     Tab 2: Mã hóa văn bản UTF-8
+│   │   ├── tab_rc4_tep_tin.py          #     Tab 3: Mã hóa tệp tin & ảnh nhị phân
+│   │   ├── tab_kiem_thu.py             #     Tab 4: Kiểm thử thủ công
+│   │   ├── tab_tham_ma.py              #     Tab 5: Phòng thực nghiệm thám mã bẻ khóa FMS WEP
+│   │   └── __init__.py
+│   └── __init__.py                     #     Khởi tạo gói gốc src
 ├── sample_data/                        # Dữ liệu thử nghiệm mẫu (logo.png, sample_text.txt)
 ├── main.py                             # [2] Điểm khởi chạy ứng dụng (python main.py)
 ├── .gitignore                          # [3] Bỏ qua cache, venv và tệp tạm
