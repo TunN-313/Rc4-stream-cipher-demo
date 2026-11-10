@@ -59,27 +59,27 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 
 ```text
 RC4-demo/
+├── sample_data/                        # Dữ liệu thử (logo.png, sample_text.txt)
 ├── src/                                # [1] Mã nguồn chính của dự án
 │   ├── core/                           #     Module thuật toán mật mã (Core)
 │   │   ├── buoc1_xu_ly_dau_vao.py      #     ~ BƯỚC 1: Chuẩn hóa dữ liệu UTF-8, Hex, sinh khóa & phân tích
 │   │   ├── buoc2_khoi_tao_ksa.py       #     ~ BƯỚC 2: Khởi tạo mảng hoán vị KSA (modulo 8 & 256)
-│   │   ├── buoc3_sinh_so_prga.py       #     ~ BƯỚC 3: Sinh keystream PRGA, TinyRC4 & RC4 chuẩn (mã hóa XOR)
+│   │   ├── buoc3_sinh_so_prga.py       #     ~ BƯỚC 3: Sinh keystream PRGA, TinyRC4 & RC4 (mã hóa XOR)
 │   │   ├── buoc4_tham_ma_be_khoa.py    #     ~ BƯỚC 4: Thám mã bẻ khóa FMS WEP & Benchmark hiệu năng
 │   │   └── __init__.py                 #     Điểm xuất toàn bộ hàm và cấu trúc dữ liệu
 │   ├── ui/                             #     Module giao diện người dùng (UI)
-│   │   ├── khung_giao_dien.py          #     Khung chính + Thanh Tab ngang học thuật
-│   │   ├── tab_rc4_thu_nho.py          #     Tab 1: Trực quan hóa TinyRC4 3-bit
+│   │   ├── khung_giao_dien.py          #     Khung chính + Thanh Tab 
+│   │   ├── tab_rc4_thu_nho.py          #     Tab 1: TinyRC4 3-bit
 │   │   ├── tab_rc4_van_ban.py          #     Tab 2: Mã hóa văn bản UTF-8
-│   │   ├── tab_rc4_tep_tin.py          #     Tab 3: Mã hóa tệp tin & ảnh nhị phân
+│   │   ├── tab_rc4_tep_tin.py          #     Tab 3: Mã hóa tệp tin & ảnh 
 │   │   ├── tab_kiem_thu.py             #     Tab 4: Kiểm thử thủ công
-│   │   ├── tab_tham_ma.py              #     Tab 5: Phòng thực nghiệm thám mã bẻ khóa FMS WEP
+│   │   ├── tab_tham_ma.py              #     Tab 5: Thám mã bẻ khóa FMS WEP
 │   │   └── __init__.py
 │   └── __init__.py                     #     Khởi tạo gói gốc src
-├── sample_data/                        # Dữ liệu thử nghiệm mẫu (logo.png, sample_text.txt)
 ├── main.py                             # [2] Điểm khởi chạy ứng dụng (python main.py)
 ├── .gitignore                          # [3] Bỏ qua cache, venv và tệp tạm
-├── README.md                           # [4] Tài liệu hướng dẫn & Bảng chú giải
-└── requirements.txt                    # [5] Danh sách thư viện phụ thuộc gọn nhẹ
+├── README.md                           # [4] Tài liệu hướng dẫn 
+└── requirements.txt                    # [5] Danh sách thư viện phụ thuộc
 ```
 
 ---
