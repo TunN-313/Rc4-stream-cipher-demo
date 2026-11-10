@@ -9,15 +9,18 @@ hiển thị bản mã Hex, Base64, kết quả giải mã và ma trận trạng
 from __future__ import annotations  # dùng để hỗ trợ chú thích kiểu dữ liệu kiểu mới của Python
 from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
 
-from src.core.quan_ly_khoa import khoa_tu_chuoi, khoa_tu_hex, sinh_khoa_rc4  # file nội bộ: sinh và phân tích khóa
-from src.core.chuyen_doi_du_lieu import (  # file nội bộ: chuyển đổi bytes, hex và phân tích UTF-8
+from src.core import (
+    khoa_tu_chuoi,
+    khoa_tu_hex,
+    sinh_khoa_rc4,
     bytes_sang_hex,
     hex_sang_bytes,
     kiem_tra_giai_ma_utf8_ban_ma,
     phan_tich_ky_tu_utf8,
     trace_rc4_utf8_xor,
+    rc4_crypt,
+    rc4_crypt_with_details,
 )
-from src.core.rc4_chuan import rc4_crypt, rc4_crypt_with_details  # file nội bộ: thuật toán RC4 256-byte
 
 
 def dung_tab_rc4_van_ban() -> None:
@@ -36,7 +39,6 @@ def dung_tab_rc4_van_ban() -> None:
                 with ui.column().classes("gap-0"):
                     ui.label("1. Mã Hóa & Giải Mã Văn Bản (UTF-8)").classes("text-base font-bold text-slate-800")
                     ui.label("RC4 256-byte chuẩn • Modulo 256 • Xử lý chuỗi ký tự Unicode").classes("text-xs text-slate-500")
-            ui.badge("Mảng S 256 bytes", color="primary").classes("text-xs")
 
         # Ghi chú học thuật: Vị trí của UTF-8 trong quy trình RC4
         with ui.row().classes("w-full items-start gap-2.5 p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-xl text-xs text-sky-950"):
@@ -104,7 +106,7 @@ def dung_tab_rc4_van_ban() -> None:
         # Chip tóm tắt chỉ số thực thi (Execution Stats Bar)
         full_meta_row = ui.row().classes("w-full items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200/60 text-xs font-mono text-slate-700 flex-wrap")
 
-        full_hex_out = ui.textarea(label="Bản mã (Hexadecimal)").classes("w-full font-mono text-xs")
+        full_hex_out = ui.textarea(label="Bản mã (Hex)").classes("w-full font-mono text-xs")
         full_b64_out = ui.input(label="Bản mã (Base64)").classes("w-full font-mono text-xs")
         full_dec_out = ui.input(label="Kết quả Giải mã ngược lại (Khôi phục bản rõ)").classes(
             "w-full font-bold text-emerald-800"
@@ -120,7 +122,7 @@ def dung_tab_rc4_van_ban() -> None:
             """Thực thi mã hóa bản rõ và kiểm tra giải mã ngược lại bằng rc4_crypt.
 
             Hàm gọi rc4_crypt_with_details() để lấy bản mã, thời gian đo và trạng thái ma trận S,
-            sau đó gọi rc4_crypt() giải mã ngược lại để chứng minh tính đối xứng hoàn hảo.
+            sau đó gọi rc4_crypt() giải mã ngược lại để chứng minh tính đối xứng.
 
             Tham số: Không có.
             Giá trị trả về: Không có.
@@ -177,7 +179,6 @@ def dung_tab_rc4_van_ban() -> None:
                 with ui.column().classes("gap-0"):
                     ui.label("Minh Họa Biểu Diễn UTF-8 Trong RC4").classes("text-base font-bold text-slate-800")
                     ui.label("Phân rã mã điểm Unicode • Diễn giải phép XOR 8-bit từng byte").classes("text-xs text-slate-500")
-            ui.badge("Unicode UTF-8", color="positive").classes("text-xs")
 
         # Khung nhập liệu thử nghiệm
         with ui.row().classes("w-full items-center gap-3 flex-wrap"):
@@ -265,7 +266,7 @@ def dung_tab_rc4_van_ban() -> None:
                         "<th class='p-2'>Bit dữ liệu</th>"
                         "<th class='p-2'>Dạng nhị phân 8-bit</th>"
                         "<th class='p-2'>Dạng Hex</th>"
-                        "<th class='p-2'>Byte bản rõ P_r (Dec)</th>"
+                        "<th class='p-2'>Byte bản rõ P[r] (Thập phân)</th>"
                         "</tr>"
                         "</thead>"
                         f"<tbody>{''.join(table_1_rows)}</tbody>"
@@ -306,11 +307,11 @@ def dung_tab_rc4_van_ban() -> None:
                         "<tr>"
                         "<th class='p-2 text-center'>r</th>"
                         "<th class='p-2'>Ký tự</th>"
-                        "<th class='p-2'>Byte bản rõ P_r</th>"
-                        "<th class='p-2'>Byte dòng khóa Z_r</th>"
-                        "<th class='p-2'>Phép XOR trên 8 bit (P_r ⊕ Z_r)</th>"
-                        "<th class='p-2'>Bản mã C_r (Dec)</th>"
-                        "<th class='p-2'>Bản mã C_r (Hex)</th>"
+                        "<th class='p-2'>Byte bản rõ P[r]</th>"
+                        "<th class='p-2'>Byte dòng khóa Z[r]</th>"
+                        "<th class='p-2'>Phép XOR 8 bit (P[r] ⊕ Z[r])</th>"
+                        "<th class='p-2'>Bản mã C[r] (Thập phân)</th>"
+                        "<th class='p-2'>Bản mã C[r] (Hex)</th>"
                         "</tr>"
                         "</thead>"
                         f"<tbody>{''.join(table_2_rows)}</tbody>"
@@ -327,7 +328,7 @@ def dung_tab_rc4_van_ban() -> None:
                     with ui.column().classes("gap-1"):
                         ui.label("Tại sao không thể giải mã UTF-8 trực tiếp trên bản mã?").classes("font-bold text-rose-900")
                         ui.label(
-                            "Phép XOR giữa byte bản rõ và dòng khóa (C_r = P_r ⊕ Z_r) tạo ra các byte có giá trị ngẫu nhiên (0..255). "
+                            "Phép XOR giữa byte bản rõ và dòng khóa (C[r] = P[r] ⊕ Z[r]) tạo ra các byte có giá trị ngẫu nhiên (0..255). "
                             "Các byte ngẫu nhiên này thường xuyên vi phạm cấu trúc tiền tố chuẩn của UTF-8 (ví dụ: byte mở đầu báo hiệu ký tự đa byte nhưng byte tiếp theo không có dạng '10xxxxxx', hoặc xuất hiện byte không hợp lệ), "
                             "dẫn đến lỗi UnicodeDecodeError khi giải mã. Do đó, bản mã bắt buộc phải được lưu trữ dưới dạng nhị phân hoặc biểu diễn an toàn qua chuỗi Hex hoặc Base64."
                         ).classes("leading-relaxed text-rose-900/90")

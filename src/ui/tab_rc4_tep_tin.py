@@ -20,9 +20,13 @@ from typing import Any, Dict, Optional, Tuple  # dùng để khai báo gợi ý 
 from nicegui import ui  # dùng để xây dựng các thành phần giao diện web bằng Python
 from PIL import Image  # dùng để đọc, kiểm định định dạng ảnh và tạo ảnh nhiễu nhị phân
 
-from src.core.quan_ly_khoa import khoa_tu_chuoi, khoa_tu_hex, sinh_khoa_rc4  # file nội bộ: sinh và phân tích khóa
-from src.core.chuyen_doi_du_lieu import bytes_sang_hex  # file nội bộ: chuyển đổi mảng byte sang chuỗi Hex
-from src.core.rc4_chuan import rc4_crypt_chunks  # file nội bộ: generator mã hóa RC4 theo từng khối nhỏ
+from src.core import (
+    khoa_tu_chuoi,
+    khoa_tu_hex,
+    sinh_khoa_rc4,
+    bytes_sang_hex,
+    rc4_crypt_chunks,
+)
 
 MAX_BYTES: int = 8 * 1024 * 1024  # Giới hạn kích thước tệp tối đa cho phép tải lên là 8 MiB
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}  # Tập các đuôi tệp ảnh
@@ -184,13 +188,12 @@ def dung_tab_rc4_tep_tin() -> None:
                     ):
                         ui.icon("folder_zip", size="sm")
                     with ui.column().classes("gap-0"):
-                        ui.label("2. Quy Trình Xử Lý Tệp (File Pipeline)").classes("text-base font-bold text-slate-800")
-                        ui.label("Luồng 3 bước: Nạp → Mã hóa Streaming → Giải mã & Đối chiếu toàn vẹn").classes(
+                        ui.label("Quy Trình Xử Lý Tệp").classes("text-base font-bold text-slate-800")
+                        ui.label("Luồng 3 bước: Nạp → Mã hóa từng phần → Giải mã & Đối chiếu toàn vẹn").classes(
                             "text-xs text-slate-500"
                         )
                 with ui.row().classes("items-center gap-3"):
                     slow_switch = ui.switch("Trình diễn chậm", value=True).props("dense").classes("text-xs")
-                    ui.badge("RC4 Chunked • 3 Bước Tách Rời", color="accent").classes("text-xs font-semibold px-2 py-1")
 
         # Div grid chứa 3 ui.card, mỗi card một bước độc lập
         with ui.element("div").classes("grid grid-cols-1 xl:grid-cols-3 gap-4 w-full items-start"):
@@ -214,7 +217,7 @@ def dung_tab_rc4_tep_tin() -> None:
                 with ui.row().classes("w-full items-center justify-between flex-wrap gap-2"):
                     with ui.row().classes("items-center gap-2"):
                         btn_sample_img = ui.button("Ảnh mẫu", icon="image").props("outline size=sm color=primary")
-                        btn_sample_txt = ui.button("Text mẫu", icon="description").props("outline size=sm color=secondary")
+                        btn_sample_txt = ui.button("Văn bản mẫu", icon="description").props("outline size=sm color=secondary")
                     ui.label("Hỗ trợ: .png, .jpg, .txt, .rc4 (chỉ có bản mã)...").classes("text-xs text-slate-400")
 
                 # Khung thông tin metadata & Preview Bước 1
@@ -230,7 +233,7 @@ def dung_tab_rc4_tep_tin() -> None:
                 with ui.row().classes("w-full items-center justify-between flex-wrap gap-1"):
                     with ui.row().classes("items-center gap-2"):
                         ui.badge("2", color="primary").classes("rounded-full w-6 h-6 text-xs flex items-center justify-center")
-                        ui.label("Bước 2 – Mã Hóa RC4 (Chunked Streaming)").classes("text-sm font-bold text-slate-800")
+                        ui.label("Bước 2 – Mã Hóa RC4").classes("text-sm font-bold text-slate-800")
                     enc_status_label = ui.label("").classes("text-xs font-mono text-slate-600")
 
                 with ui.row().classes("w-full items-center gap-2"):
@@ -351,17 +354,6 @@ def dung_tab_rc4_tep_tin() -> None:
         # CÁC HÀM XỬ LÝ GIAO DIỆN & LOGIC
         # ----------------------------------------------------------------------
 
-        def clear_step2_and_step3() -> None:
-            """Xóa kết quả downstream của Bước 2 và Bước 3 khi nạp tệp mới.
-
-            Tham số: Không có.
-            Giá trị trả về: Không có.
-            """
-            enc_progress.value = 0.0
-            enc_status_label.text = ""
-            step2_result_box.clear()
-            clear_step3()
-
         def clear_step3() -> None:
             """Xóa kết quả downstream của Bước 3 khi mã hóa lại.
 
@@ -372,6 +364,17 @@ def dung_tab_rc4_tep_tin() -> None:
             dec_status_label.text = ""
             step3_result_box.clear()
             file_state["decrypted"] = None
+
+        def clear_step2_and_step3() -> None:
+            """Xóa kết quả downstream của Bước 2 và Bước 3 khi nạp tệp mới.
+
+            Tham số: Không có.
+            Giá trị trả về: Không có.
+            """
+            enc_progress.value = 0.0
+            enc_status_label.text = ""
+            step2_result_box.clear()
+            clear_step3()
 
         def render_step1_preview() -> None:
             """Hiển thị tên, kích thước, SHA-256 và bản xem trước Bước 1.

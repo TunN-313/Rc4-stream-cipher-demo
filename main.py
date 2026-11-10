@@ -6,7 +6,6 @@ File này gọi hàm dung_khung_giao_dien() trong src/ui/khung_giao_dien.py đ�
 sau đó gọi ui.run() để khởi động máy chủ web cục bộ tại cổng 8080.
 """
 
-from pathlib import Path  # dùng để xử lý đường dẫn tệp tin hệ thống an toàn
 from nicegui import ui  # dùng để xây dựng và điều khiển giao diện web tương tác bằng Python
 from src.ui import dung_khung_giao_dien  # file nội bộ của dự án: tạo toàn bộ khung giao diện
 
@@ -17,7 +16,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     # 2. Khởi chạy máy chủ web NiceGUI (ui.run lắng nghe kết nối từ trình duyệt)
     ui.run(
         title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",  # tiêu đề hiển thị trên tab trình duyệt
-        favicon=Path(__file__).parent / "static" / "favicon.ico",  # biểu tượng nhỏ trên tab web
+        favicon="🔐",  # biểu tượng ổ khóa bảo mật trên tab trình duyệt
         port=8080,  # mở cổng dịch vụ web tại địa chỉ cục bộ http://localhost:8080
-        reload=True,  # tự động nạp lại giao diện khi lập trình viên chỉnh sửa mã nguồn
+        reload=True,  # tự động nạp lại giao diện khi chỉnh sửa mã nguồn
     )
