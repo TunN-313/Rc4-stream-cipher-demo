@@ -43,8 +43,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 *Các thư viện sử dụng:*
-- `nicegui>=3.0,<4.0`: Xây dựng giao diện web trực quan bằng Python.
+- `nicegui>=3.0,<4.0`: Giao diện web trực quan bằng GUI Python.
 - `pillow>=10.0.0`: Xử lý hình ảnh nhị phân (.png, .jpg).
+- `pycryptodome>=3.18.0`: Thư viện mật mã đối chiếu kiểm thử (ARC4).
 
 ### Bước 4: Khởi chạy ứng dụng
 ```bash
@@ -65,7 +66,7 @@ RC4-demo/
 │   │   ├── buoc1_xu_ly_dau_vao.py      #     ~ BƯỚC 1: Chuẩn hóa dữ liệu UTF-8, Hex, sinh khóa & phân tích
 │   │   ├── buoc2_khoi_tao_ksa.py       #     ~ BƯỚC 2: Khởi tạo mảng hoán vị KSA (modulo 8 & 256)
 │   │   ├── buoc3_sinh_so_prga.py       #     ~ BƯỚC 3: Sinh keystream PRGA, TinyRC4 & RC4 (mã hóa XOR)
-│   │   ├── buoc4_tham_ma_be_khoa.py    #     ~ BƯỚC 4: Thám mã bẻ khóa FMS WEP & Benchmark hiệu năng
+│   │   ├── tham_ma_be_khoa.py          #     Thám mã bẻ khóa FMS WEP & Benchmark hiệu năng
 │   │   └── __init__.py                 #     Điểm xuất toàn bộ hàm và cấu trúc dữ liệu
 │   ├── ui/                             #     Module giao diện người dùng (UI)
 │   │   ├── khung_giao_dien.py          #     Khung chính + Thanh Tab 

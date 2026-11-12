@@ -1,5 +1,5 @@
 """
-BƯỚC 4: THÁM MÃ & PHÂN TÍCH AN TOÀN MẬT MÃ (src/core/buoc4_tham_ma_be_khoa.py)
+THÁM MÃ & PHÂN TÍCH AN TOÀN MẬT MÃ (src/core/tham_ma_be_khoa.py)
 Nhiệm vụ: Cung cấp thuật toán thám mã thực nghiệm an toàn mật mã:
   1. Tấn công FMS (Fluhrer–Mantin–Shamir) bẻ khóa WEP thông qua IV yếu.
   2. Đo tốc độ xử lý mã hóa RC4 (Benchmark).

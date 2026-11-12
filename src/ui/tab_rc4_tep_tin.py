@@ -165,13 +165,13 @@ def dung_tab_rc4_tep_tin() -> None:
     """
     # Biến trạng thái state: lưu trữ toàn bộ dữ liệu tạm thời của phiên làm việc gồm:
     # tên tệp (name), byte bản rõ gốc (original), byte bản mã (encrypted), byte sau giải mã (decrypted),
-    # và cờ is_rc4_loaded (xác định tệp nạp vào là bản mã .rc4 có sẵn hay tệp gốc).
+    # và cờ is_enc_loaded (xác định tệp nạp vào là bản mã .enc có sẵn hay tệp gốc).
     file_state: Dict[str, Any] = {
         "name": "sample_logo.png",
         "original": None,
         "encrypted": None,
         "decrypted": None,
-        "is_rc4_loaded": False,
+        "is_enc_loaded": False,
     }
 
     # Cờ busy: cờ kiểm soát ngăn người dùng bấm thao tác khi tiến trình đang xử lý
@@ -218,7 +218,7 @@ def dung_tab_rc4_tep_tin() -> None:
                     with ui.row().classes("items-center gap-2"):
                         btn_sample_img = ui.button("Ảnh mẫu", icon="image").props("outline size=sm color=primary")
                         btn_sample_txt = ui.button("Văn bản mẫu", icon="description").props("outline size=sm color=secondary")
-                    ui.label("Hỗ trợ: .png, .jpg, .txt, .rc4 (chỉ có bản mã)...").classes("text-xs text-slate-400")
+                    ui.label("Hỗ trợ: .png, .jpg, .txt, .enc (chỉ có bản mã)...").classes("text-xs text-slate-400")
 
                 # Khung thông tin metadata & Preview Bước 1
                 step1_info_box = ui.column().classes("w-full gap-2")
@@ -257,7 +257,7 @@ def dung_tab_rc4_tep_tin() -> None:
 
                 # Nút tải bản mã
                 with ui.row().classes("w-full items-center justify-end gap-2 pt-2 border-t border-slate-200/60"):
-                    btn_download_rc4 = ui.button("Tải bản mã (.rc4)", icon="download").props("color=primary size=sm")
+                    btn_download_rc4 = ui.button("Tải bản mã (.enc)", icon="download").props("color=primary size=sm")
 
             # ==================================================================
             # BƯỚC 3 – GIẢI MÃ & ĐỐI CHIẾU (DECRYPT & INTEGRITY)
@@ -384,8 +384,8 @@ def dung_tab_rc4_tep_tin() -> None:
             """
             step1_info_box.clear()
             filename = file_state["name"]
-            is_rc4 = file_state["is_rc4_loaded"]
-            data = file_state["encrypted"] if is_rc4 else file_state["original"]
+            is_enc = file_state.get("is_enc_loaded", False) or file_state.get("is_rc4_loaded", False)
+            data = file_state["encrypted"] if is_enc else file_state["original"]
 
             if data is None:
                 return
@@ -405,15 +405,15 @@ def dung_tab_rc4_tep_tin() -> None:
                         ui.label(f"({data_len:,} bytes)").classes("text-slate-500")
                     with ui.row().classes("items-center gap-2 flex-wrap"):
                         ui.label(f"SHA-256: {sha16}...").classes("text-slate-600")
-                        if is_rc4:
+                        if is_enc:
                             ui.badge("chỉ có bản mã", color="warning").classes("text-xs")
                         else:
                             ui.badge("Bản gốc", color="primary").classes("text-xs")
 
                 # Preview container
-                if is_rc4:
+                if is_enc:
                     with ui.column().classes("w-full p-3 rounded-lg border border-amber-200 bg-amber-50/50"):
-                        ui.label("Tệp nạp vào là bản mã RC4 (.rc4). Chuyển sang Bước 3 để giải mã.").classes(
+                        ui.label("Tệp nạp vào là bản mã (.enc). Chuyển sang Bước 3 để giải mã.").classes(
                             "text-xs text-amber-800 font-semibold"
                         )
                 else:
@@ -539,7 +539,7 @@ def dung_tab_rc4_tep_tin() -> None:
             """Xử lý nạp dữ liệu tệp vào pipeline và cập nhật giao diện xem trước.
 
             Tham số:
-                name: Tên tệp tin được nạp (ví dụ 'sample_logo.png' hoặc 'secret.rc4').
+                name: Tên tệp tin được nạp (ví dụ 'sample_logo.png' hoặc 'secret.enc').
                 content: Mảng byte nhị phân của tệp tin.
             Giá trị trả về: Không có.
             """
@@ -554,12 +554,12 @@ def dung_tab_rc4_tep_tin() -> None:
 
             clear_step2_and_step3()
 
-            is_rc4 = name.lower().endswith(".rc4")
-            if is_rc4:
-                file_state["name"] = name[:-4] if name.lower().endswith(".rc4") else name
+            is_enc = name.lower().endswith(".enc") or name.lower().endswith(".rc4")
+            if is_enc:
+                file_state["name"] = name[:-4] if (name.lower().endswith(".enc") or name.lower().endswith(".rc4")) else name
                 file_state["original"] = None
                 file_state["encrypted"] = content
-                file_state["is_rc4_loaded"] = True
+                file_state["is_enc_loaded"] = True
                 render_step1_preview()
                 render_step2_preview()
                 ui.notify(f"Đã nạp tệp bản mã: {name} ({len(content):,} bytes)", type="info")
@@ -567,7 +567,7 @@ def dung_tab_rc4_tep_tin() -> None:
                 file_state["name"] = name
                 file_state["original"] = content
                 file_state["encrypted"] = None
-                file_state["is_rc4_loaded"] = False
+                file_state["is_enc_loaded"] = False
                 render_step1_preview()
                 ui.notify(f"Đã nạp tệp: {name} ({len(content):,} bytes)", type="positive")
 
@@ -651,8 +651,8 @@ def dung_tab_rc4_tep_tin() -> None:
 
             original = file_state.get("original")
             if original is None:
-                if file_state.get("is_rc4_loaded"):
-                    ui.notify("Tệp hiện tại chỉ có bản mã (.rc4). Vui lòng chuyển sang Bước 3 để giải mã.", type="info")
+                if file_state.get("is_enc_loaded") or file_state.get("is_rc4_loaded"):
+                    ui.notify("Tệp hiện tại chỉ có bản mã (.enc). Vui lòng chuyển sang Bước 3 để giải mã.", type="info")
                 else:
                     ui.notify("Chưa có dữ liệu bản gốc để mã hóa. Vui lòng nạp tệp ở Bước 1.", type="warning")
                 return
@@ -751,7 +751,7 @@ def dung_tab_rc4_tep_tin() -> None:
 
             ciphertext = file_state.get("encrypted")
             if ciphertext is None:
-                ui.notify("Chưa có bản mã để giải mã. Hãy mã hóa ở Bước 2 hoặc nạp tệp .rc4 ở Bước 1.", type="warning")
+                ui.notify("Chưa có bản mã để giải mã. Hãy mã hóa ở Bước 2 hoặc nạp tệp .enc ở Bước 1.", type="warning")
                 return
 
             try:
@@ -815,7 +815,7 @@ def dung_tab_rc4_tep_tin() -> None:
 
         # Download handlers
         def download_ciphertext() -> None:
-            """Kích hoạt tải tệp bản mã (.rc4) về máy tính người dùng.
+            """Kích hoạt tải tệp bản mã (.enc) về máy tính người dùng.
 
             Tham số: Không có.
             Giá trị trả về: Không có.
@@ -824,7 +824,7 @@ def dung_tab_rc4_tep_tin() -> None:
             if not c:
                 ui.notify("Chưa có dữ liệu bản mã để tải về.", type="warning")
                 return
-            download_name = f"{file_state['name']}.rc4"
+            download_name = f"{file_state['name']}.enc"
             # ui.download: kích hoạt trình duyệt tự động tải tệp tin về máy tính người dùng
             ui.download(c, download_name)
 

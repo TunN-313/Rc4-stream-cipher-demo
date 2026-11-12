@@ -1,7 +1,7 @@
 """
 GÓI LÕI THUẬT TOÁN RC4 (src/core/__init__.py)
 Tập hợp và công bố toàn bộ các hàm toán học, mô hình dữ liệu và công cụ phân tích RC4
-từ 4 module phân theo thứ tự 4 bước xử lý nghiệp vụ.
+từ các module thuật toán RC4 và phân hệ thám mã bẻ khóa.
 """
 
 from __future__ import annotations
@@ -52,8 +52,8 @@ from src.core.buoc3_sinh_so_prga import (
     run_tiny_rc4,
 )
 
-# Bước 4: Thám mã & Phân tích an toàn (FMS WEP & Benchmark)
-from src.core.buoc4_tham_ma_be_khoa import (
+# Thám mã & Phân tích an toàn (FMS WEP & Benchmark)
+from src.core.tham_ma_be_khoa import (
     FMSByteResult,
     FMSAttackResult,
     fms_partial_ksa,
