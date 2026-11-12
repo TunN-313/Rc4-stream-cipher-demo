@@ -255,8 +255,8 @@ def dung_tab_kiem_thu() -> None:
                 inp_ban_ma.label = "Bản mã TinyRC4 (chữ cái A-H):"
                 inp_khoa.label = "Khóa TinyRC4 (các số 0-7 cách nhau bởi dấu phẩy):"
                 inp_khoa.value = "2, 1, 3"
-                lbl_enc_col2_title.text = "VECTOR TOÁN HỌC CHUẨN GIÁO TRÌNH"
-                lbl_dec_col2_title.text = "VECTOR TOÁN HỌC CHUẨN GIÁO TRÌNH"
+                lbl_enc_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT (N=8)"
+                lbl_dec_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT (N=8)"
 
             elif case == "ca_2_char":
                 container_text.set_visibility(True)
