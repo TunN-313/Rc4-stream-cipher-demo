@@ -2,10 +2,10 @@
 Giao diện Kiểm Thử Thủ Công & Đối Chiếu Chuẩn (src/ui/tab_kiem_thu.py)
 
 Thực hiện kiểm thử thủ công 4 ca:
-  - Ca 1: TinyRC4 3-bit 
-  - Ca 2: RC4 1 ký tự (Kiểm thử biên • Đối chiếu PyCryptodome ARC4)
-  - Ca 3: RC4 Đoạn siêu dài (Tải lớn • Đối chiếu PyCryptodome & SHA-256)
-  - Ca 4: RC4 Tệp tin nhị phân (Ảnh/Tệp mẫu • Đối chiếu PyCryptodome)
+  - Ca 1: TinyRC4 3-bit
+  - Ca 2: RC4 1 ký tự
+  - Ca 3: RC4 Đoạn siêu dài
+  - Ca 4: RC4 Tệp tin nhị phân
 
 Tách biệt rõ ràng 2 quy trình: KIỂM THỬ MÃ HÓA và KIỂM THỬ GIẢI MÃ.
 """
@@ -41,7 +41,7 @@ def dung_tab_kiem_thu() -> None:
                 with ui.row().classes("items-center gap-3"):
                     with ui.avatar(size="sm", color="blue-900").classes("text-white shadow"):
                         ui.icon("verified_user", size="xs")
-                    ui.label("KIỂM THỬ THỦ CÔNG & ĐỐI CHIẾU CHUẨN QUỐC TẾ (PYCRYPTODOME)").classes(
+                    ui.label("KIỂM THỬ THỦ CÔNG & ĐỐI CHIẾU CHUẨN").classes(
                         "text-sm font-bold text-slate-900 tracking-wide uppercase"
                     )
 
@@ -50,10 +50,10 @@ def dung_tab_kiem_thu() -> None:
             # Bộ chọn 4 ca kiểm thử
             case_selector = ui.radio(
                 options={
-                    "ca_1_tiny": "Ca 1: TinyRC4 3-bit (Giáo trình N=8)",
-                    "ca_2_char": "Ca 2: RC4 1 ký tự (Kiểm thử biên)",
-                    "ca_3_long": "Ca 3: RC4 Đoạn siêu dài (Tải lớn)",
-                    "ca_4_file": "Ca 4: RC4 Tệp tin nhị phân (Ảnh / Tệp mẫu)",
+                    "ca_1_tiny": "Ca 1: TinyRC4 3-bit",
+                    "ca_2_char": "Ca 2: RC4 1 ký tự",
+                    "ca_3_long": "Ca 3: RC4 Đoạn siêu dài",
+                    "ca_4_file": "Ca 4: RC4 Tệp tin nhị phân",
                 },
                 value="ca_2_char",
             ).classes("text-xs font-semibold gap-3")
@@ -62,7 +62,7 @@ def dung_tab_kiem_thu() -> None:
             container_text = ui.column().classes("w-full gap-2")
             with container_text:
                 inp_ban_ro = ui.textarea(
-                    label="Bản rõ (Plaintext):",
+                    label="Bản rõ:",
                     value="A",
                 ).classes("w-full font-mono text-xs")
 
@@ -82,14 +82,14 @@ def dung_tab_kiem_thu() -> None:
             }
             with container_file:
                 with ui.row().classes("w-full items-center gap-2 flex-wrap"):
-                    btn_sample_logo = ui.button("Ảnh mẫu (sample_logo.png)", icon="image", color="slate-200").props(
+                    btn_sample_logo = ui.button("Ảnh mẫu", icon="image", color="slate-200").props(
                         "dense size=sm"
                     ).classes("text-slate-800 text-xs")
-                    btn_sample_txt = ui.button("Tệp văn bản (sample_text.txt)", icon="description", color="slate-200").props(
+                    btn_sample_txt = ui.button("Tệp văn bản", icon="description", color="slate-200").props(
                         "dense size=sm"
                     ).classes("text-slate-800 text-xs")
 
-                lbl_file_selected = ui.label("Tệp đang chọn: sample_logo.png (3.4 KB)").classes(
+                lbl_file_selected = ui.label("Tệp đang chọn: sample_logo.png").classes(
                     "text-xs font-mono font-semibold text-blue-900 bg-blue-50 p-2 rounded border border-blue-200"
                 )
 
@@ -102,8 +102,8 @@ def dung_tab_kiem_thu() -> None:
 
             # Vùng nhập Bản mã
             inp_ban_ma = ui.textarea(
-                label="Bản mã (Ciphertext - Hex hoặc chuỗi 3-bit):",
-                placeholder="Bản mã sẽ tự xuất hiện sau khi Mã hóa, hoặc bạn có thể tự nhập mã Hex vào đây để kiểm thử Giải mã...",
+                label="Bản mã:",
+                placeholder="Bản mã...",
                 value="",
             ).classes("w-full font-mono text-xs")
 
@@ -127,23 +127,22 @@ def dung_tab_kiem_thu() -> None:
                     ).classes("text-white font-semibold px-4 py-2 rounded-lg text-xs")
 
                     btn_chay_ca_hai = ui.button(
-                        "▶ CHẠY CẢ HAI (MÃ HÓA & GIẢI MÃ)",
+                        "▶ CHẠY CẢ HAI",
                         color="emerald-800",
                     ).classes("text-white font-semibold px-4 py-2 rounded-lg text-xs")
 
                     toggle_fault = ui.switch("Mô phỏng sai lệch").props("dense color=negative")
-                    toggle_fault.tooltip("Cố ý làm lệch 1 byte ở thuật toán dự án để quan sát phản ứng bắt lỗi MISMATCH")
 
                 btn_xoa = ui.button("Xóa Trắng", color="slate-200").classes(
                     "text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs"
                 )
 
-        # 3. KẾT QUẢ ĐỐI CHIẾU MÃ HÓA (ENCRYPTION)
+        # 3. KẾT QUẢ ĐỐI CHIẾU MÃ HÓA
         with ui.card().classes("w-full p-4 bg-white border border-slate-200 shadow-sm rounded-xl gap-3") as card_kq_ma_hoa:
             card_kq_ma_hoa.set_visibility(False)
 
             with ui.row().classes("items-center justify-between w-full border-b pb-2"):
-                ui.label("1. KẾT QUẢ ĐỐI CHIẾU MÃ HÓA (ENCRYPTION)").classes(
+                ui.label("1. KẾT QUẢ ĐỐI CHIẾU MÃ HÓA").classes(
                     "text-xs font-bold text-slate-900 tracking-wider uppercase"
                 )
                 badge_status_enc = ui.badge("", color="positive").classes("text-xs font-bold px-2.5 py-0.5")
@@ -151,7 +150,7 @@ def dung_tab_kiem_thu() -> None:
             with ui.grid(columns=2).classes("w-full gap-3 text-xs"):
                 # Cột Dự Án
                 with ui.card().classes("p-3 bg-slate-50 border border-slate-200 rounded-lg gap-2"):
-                    ui.label("THUẬT TOÁN DỰ ÁN (SRC.CORE)").classes("font-bold text-blue-900 text-xs")
+                    ui.label("THUẬT TOÁN DỰ ÁN").classes("font-bold text-blue-900 text-xs")
                     ui.label("Bản mã Hex:").classes("text-slate-500 font-semibold")
                     lbl_enc_out_custom = ui.label("").classes(
                         "font-mono text-xs break-all p-2 bg-white border border-slate-200 rounded text-slate-800 min-h-[36px]"
@@ -164,7 +163,7 @@ def dung_tab_kiem_thu() -> None:
 
                 # Cột Thư Viện Chuẩn
                 with ui.card().classes("p-3 bg-slate-50 border border-slate-200 rounded-lg gap-2"):
-                    lbl_enc_col2_title = ui.label("THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)").classes(
+                    lbl_enc_col2_title = ui.label("THƯ VIỆN CHUẨN").classes(
                         "font-bold text-indigo-900 text-xs"
                     )
                     ui.label("Bản mã Hex:").classes("text-slate-500 font-semibold")
@@ -177,12 +176,12 @@ def dung_tab_kiem_thu() -> None:
                     )
                     lbl_enc_time_std = ui.label("").classes("text-slate-500 italic text-2xs")
 
-        # 4. KẾT QUẢ ĐỐI CHIẾU GIẢI MÃ (DECRYPTION)
+        # 4. KẾT QUẢ ĐỐI CHIẾU GIẢI MÃ
         with ui.card().classes("w-full p-4 bg-white border border-slate-200 shadow-sm rounded-xl gap-3") as card_kq_giai_ma:
             card_kq_giai_ma.set_visibility(False)
 
             with ui.row().classes("items-center justify-between w-full border-b pb-2"):
-                ui.label("2. KẾT QUẢ ĐỐI CHIẾU GIẢI MÃ (DECRYPTION)").classes(
+                ui.label("2. KẾT QUẢ ĐỐI CHIẾU GIẢI MÃ").classes(
                     "text-xs font-bold text-slate-900 tracking-wider uppercase"
                 )
                 badge_status_dec = ui.badge("", color="positive").classes("text-xs font-bold px-2.5 py-0.5")
@@ -190,7 +189,7 @@ def dung_tab_kiem_thu() -> None:
             with ui.grid(columns=2).classes("w-full gap-3 text-xs"):
                 # Cột Dự Án
                 with ui.card().classes("p-3 bg-slate-50 border border-slate-200 rounded-lg gap-2"):
-                    ui.label("THUẬT TOÁN DỰ ÁN (SRC.CORE)").classes("font-bold text-blue-900 text-xs")
+                    ui.label("THUẬT TOÁN DỰ ÁN").classes("font-bold text-blue-900 text-xs")
                     ui.label("Bản rõ khôi phục:").classes("text-slate-500 font-semibold")
                     lbl_dec_out_custom = ui.label("").classes(
                         "font-mono text-xs break-all p-2 bg-white border border-slate-200 rounded text-slate-800 min-h-[36px]"
@@ -199,7 +198,7 @@ def dung_tab_kiem_thu() -> None:
 
                 # Cột Thư Viện Chuẩn
                 with ui.card().classes("p-3 bg-slate-50 border border-slate-200 rounded-lg gap-2"):
-                    lbl_dec_col2_title = ui.label("THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)").classes(
+                    lbl_dec_col2_title = ui.label("THƯ VIỆN CHUẨN").classes(
                         "font-bold text-indigo-900 text-xs"
                     )
                     ui.label("Bản rõ khôi phục:").classes("text-slate-500 font-semibold")
@@ -208,10 +207,10 @@ def dung_tab_kiem_thu() -> None:
                     )
                     lbl_dec_time_std = ui.label("").classes("text-slate-500 italic text-2xs")
 
-        # 5. THỬ NGHIỆM GIẢI MÃ VỚI KHÓA SAI (NEGATIVE TESTING)
+        # 5. THỬ NGHIỆM GIẢI MÃ VỚI KHÓA SAI
         with ui.card().classes("w-full p-4 bg-white border border-slate-200 shadow-sm rounded-xl gap-3") as card_sai_khoa:
             card_sai_khoa.set_visibility(False)
-            ui.label("3. THỬ NGHIỆM GIẢI MÃ VỚI KHÓA SAI (NEGATIVE TEST)").classes(
+            ui.label("3. THỬ NGHIỆM GIẢI MÃ VỚI KHÓA SAI").classes(
                 "text-xs font-bold text-slate-900 tracking-wider uppercase border-b pb-1.5"
             )
 
@@ -250,13 +249,13 @@ def dung_tab_kiem_thu() -> None:
                 container_text.set_visibility(True)
                 container_file.set_visibility(False)
                 row_quick_payload.set_visibility(False)
-                inp_ban_ro.label = "Bản rõ TinyRC4 (chữ A-H hoặc số 0-7):"
+                inp_ban_ro.label = "Bản rõ TinyRC4:"
                 inp_ban_ro.value = "BAG"
-                inp_ban_ma.label = "Bản mã TinyRC4 (chữ cái A-H):"
-                inp_khoa.label = "Khóa TinyRC4 (các số 0-7 cách nhau bởi dấu phẩy):"
+                inp_ban_ma.label = "Bản mã TinyRC4:"
+                inp_khoa.label = "Khóa TinyRC4:"
                 inp_khoa.value = "2, 1, 3"
-                lbl_enc_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT (N=8)"
-                lbl_dec_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT (N=8)"
+                lbl_enc_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT"
+                lbl_dec_col2_title.text = "ĐỐI CHUẨN MÔ HÌNH 3-BIT"
 
             elif case == "ca_2_char":
                 container_text.set_visibility(True)
@@ -267,8 +266,8 @@ def dung_tab_kiem_thu() -> None:
                 inp_ban_ma.label = "Bản mã Hex:"
                 inp_khoa.label = "Khóa bí mật K:"
                 inp_khoa.value = "SecretKey2026"
-                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
-                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
+                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN"
+                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN"
 
             elif case == "ca_3_long":
                 container_text.set_visibility(True)
@@ -279,17 +278,17 @@ def dung_tab_kiem_thu() -> None:
                 inp_ban_ma.label = "Bản mã Hex:"
                 inp_khoa.label = "Khóa bí mật K:"
                 inp_khoa.value = "NEU-Information-Security-2026"
-                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
-                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
+                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN"
+                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN"
 
             elif case == "ca_4_file":
                 container_text.set_visibility(False)
                 container_file.set_visibility(True)
-                inp_ban_ma.label = "Bản mã tệp (dạng Hex xem trước):"
+                inp_ban_ma.label = "Bản mã tệp:"
                 inp_khoa.label = "Khóa bí mật K:"
                 inp_khoa.value = "FileSecretKey2026"
-                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
-                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN (PYCRYPTODOME ARC4)"
+                lbl_enc_col2_title.text = "THƯ VIỆN CHUẨN"
+                lbl_dec_col2_title.text = "THƯ VIỆN CHUẨN"
 
         case_selector.on_value_change(cap_nhat_giao_dien_theo_ca)
 
@@ -311,7 +310,7 @@ def dung_tab_kiem_thu() -> None:
             if path.exists():
                 file_data_holder["name"] = ten_tep
                 file_data_holder["bytes"] = path.read_bytes()
-                lbl_file_selected.text = f"Tệp đang chọn: {ten_tep} ({len(file_data_holder['bytes'])/1024:.1f} KB)"
+                lbl_file_selected.text = f"Tệp đang chọn: {ten_tep}"
                 ui.notify(f"Đã nạp tệp: {ten_tep}", type="info")
             else:
                 ui.notify(f"Không tìm thấy {ten_tep}!", type="negative")
@@ -322,7 +321,7 @@ def dung_tab_kiem_thu() -> None:
         def on_custom_file_uploaded(e) -> None:
             file_data_holder["name"] = e.name
             file_data_holder["bytes"] = e.content.read()
-            lbl_file_selected.text = f"Tệp tải lên: {e.name} ({len(file_data_holder['bytes'])/1024:.1f} KB)"
+            lbl_file_selected.text = f"Tệp tải lên: {e.name}"
             ui.notify(f"Đã nạp tệp: {e.name}", type="positive")
 
         def on_reset() -> None:
@@ -375,7 +374,7 @@ def dung_tab_kiem_thu() -> None:
                 # Tự động điền bản mã vào ô nhập bản mã
                 inp_ban_ma.value = out_custom
 
-                # 2. Vector đối chuẩn giáo trình
+                # 2. Đối chuẩn
                 res_std = run_tiny_rc4(ban_ro_str, key_nums)
                 out_std = res_std.output_text
 
@@ -430,16 +429,16 @@ def dung_tab_kiem_thu() -> None:
                     disp_c = bytes_sang_hex(c_custom)
                     disp_s = bytes_sang_hex(c_std)
                 else:
-                    disp_c = f"{bytes_sang_hex(c_custom[:32])} ... ({len(c_custom):,} bytes)"
-                    disp_s = f"{bytes_sang_hex(c_std[:32])} ... ({len(c_std):,} bytes)"
+                    disp_c = f"{bytes_sang_hex(c_custom[:32])} ... {len(c_custom):,} bytes"
+                    disp_s = f"{bytes_sang_hex(c_std[:32])} ... {len(c_std):,} bytes"
 
                 lbl_enc_out_custom.text = disp_c
                 lbl_enc_hash_custom.text = hash_c
-                lbl_enc_time_custom.text = f"Thời gian: {t_custom:.3f} ms (Python)"
+                lbl_enc_time_custom.text = f"Thời gian: {t_custom:.3f} ms"
 
                 lbl_enc_out_std.text = disp_s
                 lbl_enc_hash_std.text = hash_s
-                lbl_enc_time_std.text = f"Thời gian: {t_std:.3f} ms (C-Extension)"
+                lbl_enc_time_std.text = f"Thời gian: {t_std:.3f} ms"
 
                 is_match = (c_custom == c_std)
 
@@ -472,7 +471,7 @@ def dung_tab_kiem_thu() -> None:
 
             if case == "ca_1_tiny":
                 if not ban_ma_str:
-                    ui.notify("Vui lòng nhập bản mã TinyRC4 (chữ cái A-H) để giải mã!", type="warning")
+                    ui.notify("Vui lòng nhập bản mã TinyRC4 để giải mã!", type="warning")
                     return False
 
                 raw_k = [x.strip() for x in khoa_str.replace(";", ",").split(",") if x.strip()]
@@ -487,7 +486,7 @@ def dung_tab_kiem_thu() -> None:
                     ui.notify("Khóa TinyRC4 không hợp lệ!", type="warning")
                     return False
 
-                # 1. Dự án giải mã (mã hóa lại bản mã bằng cùng khóa)
+                # 1. Dự án giải mã
                 t0 = time.perf_counter()
                 dec_custom = run_tiny_rc4(ban_ma_str, key_nums)
                 t_custom = (time.perf_counter() - t0) * 1000
@@ -495,14 +494,14 @@ def dung_tab_kiem_thu() -> None:
                 if is_fault:
                     res_dec_custom_text = "ERR_" + res_dec_custom_text
 
-                # 2. Vector đối chuẩn giải mã
+                # 2. Đối chuẩn giải mã
                 dec_std = run_tiny_rc4(ban_ma_str, key_nums)
                 res_dec_std_text = dec_std.output_text
 
-                lbl_dec_out_custom.text = f"Khôi phục: '{res_dec_custom_text}' (Số: {dec_custom.output_list})"
+                lbl_dec_out_custom.text = f"Khôi phục: '{res_dec_custom_text}' • Số: {dec_custom.output_list}"
                 lbl_dec_time_custom.text = f"Thời gian: {t_custom:.3f} ms"
 
-                lbl_dec_out_std.text = f"Khôi phục: '{res_dec_std_text}' (Số: {dec_std.output_list})"
+                lbl_dec_out_std.text = f"Khôi phục: '{res_dec_std_text}' • Số: {dec_std.output_list}"
                 lbl_dec_time_std.text = "Quy chuẩn Modulo 8"
 
                 is_match = (res_dec_custom_text == res_dec_std_text)
@@ -513,7 +512,6 @@ def dung_tab_kiem_thu() -> None:
                 if case == "ca_4_file":
                     c_bytes = file_data_holder.get("cipher_bytes", b"")
                     if not c_bytes:
-                        # Thử lấy dữ liệu tệp gốc mã hóa tạm để giải mã
                         orig = file_data_holder.get("bytes", b"")
                         if not orig:
                             ui.notify("Chưa có dữ liệu tệp để giải mã!", type="warning")
@@ -552,8 +550,8 @@ def dung_tab_kiem_thu() -> None:
                     lbl_dec_out_custom.text = f"Tệp {len(p_custom_b):,} bytes • SHA-256: {hash_c[:16]}..."
                     lbl_dec_out_std.text = f"Tệp {len(p_std_b):,} bytes • SHA-256: {hash_s[:16]}..."
 
-                lbl_dec_time_custom.text = f"Thời gian: {t_custom:.3f} ms (Python)"
-                lbl_dec_time_std.text = f"Thời gian: {t_std:.3f} ms (C-Extension)"
+                lbl_dec_time_custom.text = f"Thời gian: {t_custom:.3f} ms"
+                lbl_dec_time_std.text = f"Thời gian: {t_std:.3f} ms"
 
                 is_match = (p_custom_b == p_std_b)
 
@@ -600,7 +598,7 @@ def dung_tab_kiem_thu() -> None:
                 raw_k = [x.strip() for x in khoa_sai_str.replace(";", ",").split(",") if x.strip()]
                 key_sai = [int(x) % 8 for x in raw_k if x.isdigit()] or [7, 7, 7]
                 res_sai = run_tiny_rc4(ban_ma_str, key_sai)
-                lbl_noi_dung_sai.text = f"Kết quả chữ: '{res_sai.output_text}' (Khác hoàn toàn bản rõ gốc) • Số: {res_sai.output_list}"
+                lbl_noi_dung_sai.text = f"Kết quả chữ: '{res_sai.output_text}' • Số: {res_sai.output_list}"
             else:
                 if case == "ca_4_file":
                     c_bytes = file_data_holder.get("cipher_bytes", b"")
@@ -624,7 +622,7 @@ def dung_tab_kiem_thu() -> None:
                 lbl_noi_dung_sai.text = (
                     f"Giải mã với khóa sai '{khoa_sai_str}':\n"
                     f"• Dạng Hex: {bytes_sang_hex(dec_sai_b)[:40]}...\n"
-                    f"• Ký tự: \"{dec_sai_str[:40]}...\" (Biến thành ký tự rác / sai lệch dữ liệu)"
+                    f"• Ký tự: \"{dec_sai_str[:40]}...\""
                 )
 
             card_out_sai.set_visibility(True)
