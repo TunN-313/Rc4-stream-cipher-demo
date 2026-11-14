@@ -22,7 +22,6 @@ def dung_tab_tham_ma() -> None:
                         ui.icon("lock_open", size="xs")
                     with ui.column().classes("gap-0"):
                         ui.label("Tấn công khôi phục khóa FMS trên WEP").classes("text-base font-bold text-slate-800")
-                        ui.label("Phương pháp Fluhrer–Mantin–Shamir (2001) • Khôi phục khóa bí mật K").classes("text-xs text-slate-500")
 
             with ui.column().classes("w-full bg-red-50/70 border border-red-200/80 p-3.5 rounded-xl gap-2"):
                 with ui.row().classes("w-full items-start gap-2"):

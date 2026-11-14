@@ -1,5 +1,3 @@
-"""Tab 3: Xử lý tệp tin và hình ảnh với RC4 theo 3 bước."""
-
 from __future__ import annotations
 import asyncio
 import base64
@@ -114,7 +112,7 @@ def get_default_text_bytes() -> bytes:
 
 
 def dung_tab_rc4_tep_tin() -> None:
-    """Khởi tạo giao diện xử lý tệp 3 bước: Nạp, mã hóa, giải mã."""
+    """Khởi tạo giao diện"""
     # State quản lý vòng đời tệp tin giữa 3 bước độc lập trong pipeline
     file_state: Dict[str, Any] = {
         "name": "sample_logo.png",
@@ -137,9 +135,6 @@ def dung_tab_rc4_tep_tin() -> None:
                         ui.icon("folder_zip", size="sm")
                     with ui.column().classes("gap-0"):
                         ui.label("Quy Trình Xử Lý Tệp").classes("text-base font-bold text-slate-800")
-                        ui.label("Luồng 3 bước: Nạp → Mã hóa từng phần → Giải mã & Đối chiếu toàn vẹn").classes(
-                            "text-xs text-slate-500"
-                        )
                 with ui.row().classes("items-center gap-3"):
                     slow_switch = ui.switch("Trình diễn chậm", value=True).props("dense").classes("text-xs")
 

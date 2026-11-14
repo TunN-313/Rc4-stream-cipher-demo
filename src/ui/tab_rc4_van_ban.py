@@ -24,18 +24,12 @@ def dung_tab_rc4_van_ban() -> None:
                     ui.icon("article", size="xs")
                 with ui.column().classes("gap-0"):
                     ui.label("1. Mã hóa và giải mã văn bản UTF-8").classes("text-base font-bold text-slate-800")
-                    ui.label("RC4 256-byte • Modulo 256 • Ký tự Unicode").classes("text-xs text-slate-500")
 
-        with ui.row().classes("w-full items-start gap-2.5 p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-xl text-xs text-sky-950"):
+        with ui.row().classes("w-full items-start gap-2.5 p-3 bg-sky-50/70 border border-sky-200/80 rounded-xl text-xs text-sky-950"):
             ui.icon("info", size="xs").classes("text-sky-600 mt-0.5 shrink-0")
-            with ui.column().classes("gap-1"):
-                ui.label("Vị trí của UTF-8 trong quy trình RC4:").classes("font-bold text-sky-900")
-                ui.label(
-                    "UTF-8 là bước tiền xử lý chuyển đổi văn bản M thành dãy m byte nhị phân P = UTF8Encode(M) trước khi vào lõi RC4. "
-                    "Lõi RC4 (KSA, PRGA, XOR) chỉ xử lý dãy byte nhị phân thuần túy (0..255). "
-                    "Bản mã C sau phép XOR không còn là chuỗi UTF-8 hợp lệ nên không thể decode UTF-8 trực tiếp, "
-                    "mà cần được lưu nhị phân hoặc biểu diễn an toàn qua định dạng Hex hoặc Base64."
-                ).classes("leading-relaxed text-sky-900/90")
+            ui.label(
+                "Văn bản được mã hóa UTF-8 thành dãy byte nhị phân trước khi đưa vào thuật toán RC4."
+            ).classes("leading-relaxed text-sky-900/90")
 
         full_pt = ui.textarea(
             label="Bản rõ UTF-8",
@@ -138,7 +132,6 @@ def dung_tab_rc4_van_ban() -> None:
                     ui.icon("science", size="xs")
                 with ui.column().classes("gap-0"):
                     ui.label("Biểu diễn UTF-8 trong RC4").classes("text-base font-bold text-slate-800")
-                    ui.label("Phân rã mã điểm Unicode • Diễn giải phép XOR 8-bit từng byte").classes("text-xs text-slate-500")
 
         with ui.row().classes("w-full items-center gap-3 flex-wrap"):
             utf8_input_text = ui.input(
@@ -190,7 +183,7 @@ def dung_tab_rc4_van_ban() -> None:
                             ui.badge(f"{total_chars} ký tự → {total_bytes} bytes", color="primary").classes("text-xs")
                         if total_bytes != total_chars:
                             ui.label(
-                                f"💡 Chuỗi có {total_chars} ký tự nhưng nở thành {total_bytes} byte. PRGA sẽ lặp đúng m = {total_bytes} vòng!"
+                                f"Độ dài dữ liệu: {total_bytes} byte ({total_chars} ký tự). Số vòng lặp PRGA: {total_bytes}."
                             ).classes("text-xs text-sky-700 font-medium")
 
                     table_1_rows = []
@@ -271,15 +264,11 @@ def dung_tab_rc4_van_ban() -> None:
                     )
                     ui.html(table_2_html).classes("w-full")
 
-                with ui.row().classes("w-full items-start gap-2.5 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-950"):
+                with ui.row().classes("w-full items-start gap-2.5 p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-950"):
                     ui.icon("info", size="xs").classes("text-rose-600 mt-0.5 shrink-0")
-                    with ui.column().classes("gap-1"):
-                        ui.label("Tại sao không thể giải mã UTF-8 trực tiếp trên bản mã?").classes("font-bold text-rose-900")
-                        ui.label(
-                            "Phép XOR giữa byte bản rõ và dòng khóa (C[r] = P[r] ⊕ Z[r]) tạo ra các byte có giá trị ngẫu nhiên (0..255). "
-                            "Các byte ngẫu nhiên này thường xuyên vi phạm cấu trúc tiền tố UTF-8 (ví dụ: byte mở đầu báo hiệu ký tự đa byte nhưng byte tiếp theo không có dạng '10xxxxxx', hoặc xuất hiện byte không hợp lệ), "
-                            "dẫn đến lỗi UnicodeDecodeError khi giải mã. Do đó, bản mã bắt buộc phải được lưu trữ dưới dạng nhị phân hoặc biểu diễn an toàn qua chuỗi Hex hoặc Base64."
-                        ).classes("leading-relaxed text-rose-900/90")
+                    ui.label(
+                        "Bản mã sau phép XOR chứa các byte ngẫu nhiên không đúng định dạng UTF-8, cần lưu trữ dạng Hex hoặc nhị phân."
+                    ).classes("leading-relaxed text-rose-900/90")
 
         btn_run_utf8_lab.on_click(render_utf8_lab)
         utf8_input_text.on("change", render_utf8_lab)

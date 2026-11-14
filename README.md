@@ -1,6 +1,6 @@
 # Hệ Mã Dòng RC4 & TinyRC4 
 
-Demo thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng trên nền tảng **Python** và thư viện giao diện  **NiceGUI**.
+Demo thực nghiệm hệ mã dòng **TinyRC4** và **RC4 chuẩn** xây dựng trên nền tảng Python và NiceGUI.
 
 > **Repository**: [https://github.com/TunN-313/Rc4-stream-cipher-demo](https://github.com/TunN-313/Rc4-stream-cipher-demo)  
 
@@ -9,7 +9,7 @@ Demo thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-b
 ## 1. Cài Đặt & Khởi Chạy Nhanh
 
 ### Yêu cầu môi trường
-- **Python**: 3.9 đến 3.14 (Khuyến nghị 3.10 trở lên)
+- **Python**: 3.9 đến 3.14 (khuyến nghị 3.10 trở lên)
 - **Trình duyệt**: Google Chrome, Microsoft Edge, Firefox, hoặc Safari
 
 ---
@@ -19,15 +19,14 @@ Demo thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-b
 git clone https://github.com/TunN-313/Rc4-stream-cipher-demo.git
 cd Rc4-stream-cipher-demo
 ```
-*(Hoặc tải file ZIP từ GitHub và giải nén).*
 
-### Bước 2: Tạo và kích hoạt môi trường ảo (Khuyến nghị)
+### Bước 2: Tạo và kích hoạt môi trường ảo
 ```bash
 # Trên Windows PowerShell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 
-# Trên Windows Command Prompt (cmd.exe)
+# Trên Windows Command Prompt
 python -m venv .venv
 .venv\Scripts\activate.bat
 
@@ -50,7 +49,7 @@ pip install -r requirements.txt
 python main.py
 ```
 Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
-👉 **[http://localhost:8080](http://localhost:8080)**
+**[http://localhost:8080](http://localhost:8080)**
 
 ---
 
@@ -59,14 +58,14 @@ Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:
 ```text
 RC4-demo/
 ├── sample_data/                        # Dữ liệu thử (logo.png, sample_text.txt)
-├── src/                                # [1] Mã nguồn chính của dự án
-│   ├── core/                           #     Module thuật toán mật mã (Core)
+├── src/                                # Mã nguồn chính của dự án
+│   ├── core/                           #     Thuật toán mật mã
 │   │   ├── buoc1_xu_ly_dau_vao.py      #     ~ BƯỚC 1: Chuẩn hóa dữ liệu UTF-8, Hex, sinh khóa & phân tích
 │   │   ├── buoc2_khoi_tao_ksa.py       #     ~ BƯỚC 2: Khởi tạo mảng hoán vị KSA (modulo 8 & 256)
 │   │   ├── buoc3_sinh_so_prga.py       #     ~ BƯỚC 3: Sinh keystream PRGA, TinyRC4 & RC4 (mã hóa XOR)
 │   │   ├── tham_ma_be_khoa.py          #     Thám mã bẻ khóa FMS WEP & Benchmark hiệu năng
 │   │   └── __init__.py                 #     Điểm xuất toàn bộ hàm và cấu trúc dữ liệu
-│   ├── ui/                             #     Module giao diện người dùng (UI)
+│   ├── ui/                             #     Giao diện người dùng
 │   │   ├── khung_giao_dien.py          #     Khung chính + Thanh Tab 
 │   │   ├── tab_rc4_thu_nho.py          #     Tab 1: TinyRC4 3-bit
 │   │   ├── tab_rc4_van_ban.py          #     Tab 2: Mã hóa văn bản UTF-8
@@ -75,10 +74,10 @@ RC4-demo/
 │   │   ├── tab_tham_ma.py              #     Tab 5: Thám mã bẻ khóa FMS WEP
 │   │   └── __init__.py
 │   └── __init__.py                     #     Khởi tạo gói gốc src
-├── main.py                             # [2] Điểm khởi chạy ứng dụng (python main.py)
-├── .gitignore                          # [3] Bỏ qua cache, venv và tệp tạm
-├── README.md                           # [4] Tài liệu hướng dẫn 
-└── requirements.txt                    # [5] Danh sách thư viện phụ thuộc
+├── main.py                             # Điểm khởi chạy ứng dụng
+├── .gitignore                          # Cấu hình bỏ qua tệp tạm
+├── README.md                           # Tài liệu hướng dẫn
+└── requirements.txt                    # Danh sách thư viện phụ thuộc
 ```
 
 ---

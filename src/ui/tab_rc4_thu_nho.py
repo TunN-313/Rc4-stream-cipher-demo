@@ -17,37 +17,30 @@ def dung_tab_rc4_thu_nho() -> None:
                     ui.label("Thuật toán TinyRC4 3-bit").classes(
                         "text-lg font-bold text-slate-900 tracking-tight"
                     )
-                    ui.label(
-                        "Mảng trạng thái S gồm 8 phần tử 0..7 • Modulo 8"
-                    ).classes("text-xs text-slate-500 font-medium")
 
-        with ui.column().classes("w-full mb-5 bg-slate-50/90 p-4 rounded-xl border border-slate-200/80"):
-            with ui.row().classes("items-center justify-between w-full mb-2"):
-                ui.label("Bảng quy đổi ký tự sang số 3-bit:").classes(
-                    "text-xs font-bold text-slate-700 uppercase tracking-wider"
-                )
-                ui.label("8 ký tự A..H tương ứng 0..7").classes("text-2xs text-slate-400 font-mono")
-
-            with ui.row().classes("w-full items-center gap-2 flex-wrap"):
-                alphabet_mapping = [
-                    ("A", 0, "000"),
-                    ("B", 1, "001"),
-                    ("C", 2, "010"),
-                    ("D", 3, "011"),
-                    ("E", 4, "100"),
-                    ("F", 5, "101"),
-                    ("G", 6, "110"),
-                    ("H", 7, "111"),
-                ]
-                for letter, num, bit_str in alphabet_mapping:
-                    with ui.button(
-                        on_click=lambda l=letter: append_letter_to_input(l)
-                    ).props("flat dense").classes(
-                        "bg-white hover:bg-blue-50/80 px-3 py-1.5 rounded-lg border border-slate-200/90 hover:border-blue-300 shadow-2xs cursor-pointer transition-all gap-1.5 items-center normal-case"
-                    ):
-                        ui.label(letter).classes("font-black text-sm text-blue-700")
-                        ui.label(f"= {bit_str}").classes("font-mono text-xs text-slate-600 font-medium")
-                        ui.badge(str(num), color="slate-200").classes("text-2xs text-slate-700 px-1.5 py-0.5 rounded")
+        with ui.row().classes("w-full mb-5 bg-slate-50/90 p-3 rounded-xl border border-slate-200/80 items-center gap-3 flex-wrap"):
+            ui.label("Quy đổi:").classes(
+                "text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0"
+            )
+            alphabet_mapping = [
+                ("A", 0, "000"),
+                ("B", 1, "001"),
+                ("C", 2, "010"),
+                ("D", 3, "011"),
+                ("E", 4, "100"),
+                ("F", 5, "101"),
+                ("G", 6, "110"),
+                ("H", 7, "111"),
+            ]
+            for letter, num, bit_str in alphabet_mapping:
+                with ui.button(
+                    on_click=lambda l=letter: append_letter_to_input(l)
+                ).props("flat dense").classes(
+                    "bg-white hover:bg-blue-50/80 px-2.5 py-1 rounded-lg border border-slate-200/90 hover:border-blue-300 shadow-2xs cursor-pointer transition-all gap-1.5 items-center normal-case"
+                ):
+                    ui.label(letter).classes("font-black text-sm text-blue-700")
+                    ui.label(f"= {bit_str}").classes("font-mono text-xs text-slate-600 font-medium")
+                    ui.badge(str(num), color="slate-200").classes("text-2xs text-slate-700 px-1.5 py-0.5 rounded")
 
         with ui.row().classes("w-full gap-4 items-center"):
             tiny_in = ui.input(
