@@ -1,9 +1,4 @@
-"""
-THÁM MÃ & PHÂN TÍCH AN TOÀN MẬT MÃ (src/core/tham_ma_be_khoa.py)
-Nhiệm vụ: Cung cấp thuật toán thám mã thực nghiệm an toàn mật mã:
-  1. Tấn công FMS (Fluhrer–Mantin–Shamir) bẻ khóa WEP thông qua IV yếu.
-  2. Đo tốc độ xử lý mã hóa RC4 (Benchmark).
-"""
+"""Thám mã FMS trên WEP và đo tốc độ RC4."""
 
 from __future__ import annotations
 import random
@@ -16,13 +11,13 @@ from src.core.buoc2_khoi_tao_ksa import rc4_ksa
 from src.core.buoc3_sinh_so_prga import rc4_crypt
 
 
-# ==============================================================================
-# CẤU TRÚC DỮ LIỆU THÁM MÃ FMS
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Cấu trúc dữ liệu thám mã FMS
+# -----------------------------------------------------------------------------
 
 @dataclass
 class FMSByteResult:
-    """Kết quả suy luận thống kê cho một byte của khóa bí mật trong FMS WEP."""
+    """Kết quả suy luận thống kê và phân bố phiếu bầu cho từng byte khóa trong tấn công FMS."""
     byte_index: int
     true_byte: int
     recovered_byte: int
@@ -48,12 +43,12 @@ class FMSAttackResult:
     collected_packets_count: int = 0
 
 
-# ==============================================================================
-# TẤN CÔNG BẺ KHÓA FMS TRÊN GIAO THỨC WEP
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Tấn công khôi phục khóa FMS trên WEP
+# -----------------------------------------------------------------------------
 
 def fms_partial_ksa(known_bytes: Sequence[int]) -> Tuple[List[int], int]:
-    """KSA từng phần cho dãy byte đã biết (IV + các byte khóa trước)."""
+    """Mô phỏng KSA từng phần với chuỗi byte đã biết (IV + các byte khóa K[0..A-1] đã khôi phục)."""
     S = list(range(256))
     j = 0
     m = len(known_bytes)
@@ -64,7 +59,7 @@ def fms_partial_ksa(known_bytes: Sequence[int]) -> Tuple[List[int], int]:
 
 
 def fms_predict_first_output(full_key: Sequence[int]) -> int:
-    """Sinh byte đầu tiên của dòng khóa Z0."""
+    """Thực hiện một bước PRGA đầu tiên (i=1) để tính byte dòng khóa Z[0]."""
     S = rc4_ksa(bytes(full_key))
     i = 1
     j = S[1]
@@ -82,7 +77,7 @@ def simulate_fms_wep_attack(
     secret_key: Union[bytes, str, None] = None,
     target_verified: Optional[int] = None,
 ) -> FMSAttackResult:
-    """Mô phỏng tấn công bẻ khóa FMS WEP khôi phục khóa bí mật."""
+    """Mô phỏng tấn công khôi phục khóa FMS trên WEP bằng cách khai thác mẫu IV yếu."""
     raw_key = secret_key if secret_key is not None else key_bytes
     if isinstance(raw_key, str):
         actual_key = raw_key.encode("utf-8")
@@ -101,6 +96,9 @@ def simulate_fms_wep_attack(
 
     for A in range(key_len):
         votes = [0] * 256
+        # Lớp IV yếu theo lý thuyết FMS: (A + 3, N - 1, X).
+        # Tại i = 1: S[1] = A + 3; tại i = 2: j được hãm bởi 255 (-1 mod 256),
+        # giữ xác suất bảo toàn trạng thái S[1] qua KSA đạt khoảng e^-3 ≈ 5%.
         iv_byte_0 = A + 3
         iv_byte_1 = 255
 
@@ -116,6 +114,7 @@ def simulate_fms_wep_attack(
 
             S_part, j_part = fms_partial_ksa(known_prefix)
             step_i = len(known_prefix)
+            # Nghịch đảo bước cập nhật j tại vòng A + 3: candidate = (Z[0] - j - S[A+3]) mod 256
             candidate = (z0_observed - j_part - S_part[step_i]) % 256
             votes[candidate] += 1
 
@@ -140,6 +139,7 @@ def simulate_fms_wep_attack(
 
     all_matched = (bytes(recovered) == actual_key)
     verified_count = 0
+    # Kiểm chứng độc lập trên các gói tin ngẫu nhiên để xác nhận khóa khôi phục
     if all_matched:
         for _ in range(actual_verify):
             rand_iv = bytes(rng.getrandbits(8) for _ in range(3)) if rng is not None else secrets.token_bytes(3)
@@ -164,12 +164,12 @@ def simulate_fms_wep_attack(
     )
 
 
-# ==============================================================================
-# BENCHMARK TỐC ĐỘ XỬ LÝ RC4
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Đo kiểm hiệu năng thông lượng RC4
+# -----------------------------------------------------------------------------
 
 def run_rc4_benchmark(sizes_kb: Optional[List[int]] = None) -> List[Dict[str, Any]]:
-    """Đo tốc độ mã hóa RC4 trên các kích thước dữ liệu khác nhau."""
+    """Đo tốc độ mã hóa RC4 theo các kích thước dữ liệu khác nhau."""
     if sizes_kb is None:
         sizes_kb = [1, 10, 100, 500]
 

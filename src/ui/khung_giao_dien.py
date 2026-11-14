@@ -1,7 +1,4 @@
-"""
-Khung Giao Diện Chính (src/ui/khung_giao_dien.py)
-Điều hướng: Thanh Tab ngang phía trên.
-"""
+"""Bố cục giao diện chính và thanh điều hướng."""
 
 from __future__ import annotations
 from nicegui import ui
@@ -14,7 +11,7 @@ from src.ui.tab_tham_ma import dung_tab_tham_ma
 
 
 def _tich_hop_css() -> None:
-    """Tích hợp phông chữ Inter và JetBrains Mono để hiển thị giao diện chuẩn."""
+    """Cấu hình phông chữ và thanh cuộn."""
     ui.add_head_html(
         """
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,10 +47,9 @@ def _tich_hop_css() -> None:
 
 
 def dung_khung_giao_dien() -> None:
-    """Khởi tạo bố cục ứng dụng với thanh Tab ngang học thuật."""
+    """Khởi tạo bố cục ứng dụng với hệ thống tab ngang điều hướng."""
     _tich_hop_css()
 
-    # Thiết lập giao diện các thành phần mặc định
     ui.card.default_classes("bg-white border border-slate-200/90 rounded-xl shadow-xs")
     ui.input.default_props("outlined dense")
     ui.textarea.default_props("outlined dense")
@@ -62,7 +58,7 @@ def dung_khung_giao_dien() -> None:
     ui.button.default_classes("font-semibold rounded-lg")
 
     ui.colors(
-        primary="#1e3a8a",    # Xanh Navy học thuật NEU
+        primary="#1e3a8a",
         secondary="#0284c7",
         accent="#0d9488",
         positive="#16a34a",
@@ -71,14 +67,10 @@ def dung_khung_giao_dien() -> None:
         dark="#0f172a",
     )
 
-    # KHUNG TOÀN MÀN HÌNH (HEADER TRÊN + CONTENT GIỮA)
     with ui.column().classes("w-screen h-screen m-0 p-0 gap-0 overflow-hidden bg-slate-50"):
-
-        # 1. THANH HEADER TRÊN CÙNG (LOGO & TOP TABS ĐIỀU HƯỚNG)
         with ui.row().classes(
             "w-full h-14 bg-white border-b border-slate-200 px-5 flex items-center justify-between shrink-0 shadow-xs z-20"
         ):
-            # Khối bên trái: Logo NEU & Tiêu đề
             with ui.row().classes("items-center gap-3"):
                 with ui.avatar(size="md", color="blue-900").classes("text-white font-black text-xs shadow-xs"):
                     ui.label("NEU")
@@ -86,18 +78,15 @@ def dung_khung_giao_dien() -> None:
                     ui.label("RC4 LAB — HỆ MÃ DÒNG TINYRC4 & RC4").classes("text-sm font-bold text-slate-900 leading-tight")
                     ui.label("Khoa Công Nghệ Thông Tin — ĐH Kinh tế Quốc dân").classes("text-2xs text-slate-500 font-medium")
 
-            # Khối giữa: Thanh Tab ngang (Top Tabs)
             with ui.tabs().props("dense no-caps inline-label").classes("text-slate-600 font-semibold") as main_tabs:
-                tab_tiny = ui.tab("tab_tiny", label="1. TinyRC4 (3-bit)", icon="calculate")
-                tab_text = ui.tab("tab_text", label="2. RC4 Văn Bản (UTF-8)", icon="text_fields")
+                tab_tiny = ui.tab("tab_tiny", label="1. TinyRC4 3-bit", icon="calculate")
+                tab_text = ui.tab("tab_text", label="2. RC4 Văn Bản", icon="text_fields")
                 tab_file = ui.tab("tab_file", label="3. RC4 Tệp Tin & Ảnh", icon="image")
                 tab_test = ui.tab("tab_test", label="4. Kiểm Thử Thủ Công", icon="fact_check")
                 tab_attack = ui.tab("tab_attack", label="5. Thám Mã Bẻ Khóa", icon="security")
 
-            # Khối bên phải (để trống hoặc cân đối giao diện)
             ui.element("div").classes("w-6")
 
-        # 2. KHU VỰC NỘI DUNG CHÍNH (TAB PANELS)
         with ui.tab_panels(main_tabs, value=tab_tiny).classes("w-full flex-1 m-0 p-6 overflow-y-auto bg-slate-50 select-text"):
             with ui.tab_panel(tab_tiny).classes("p-0"):
                 dung_tab_rc4_thu_nho()

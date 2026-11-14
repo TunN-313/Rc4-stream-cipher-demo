@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-"""Điểm khởi chạy ứng dụng web mô phỏng hệ mã dòng TinyRC4 và RC4 đầy đủ.
+"""Điểm khởi chạy ứng dụng mô phỏng hệ mã dòng TinyRC4 và RC4."""
 
-Người dùng trực tiếp khởi thi file này từ dòng lệnh: `python main.py`.
-File này gọi hàm dung_khung_giao_dien() trong src/ui/khung_giao_dien.py để dựng giao diện,
-sau đó gọi ui.run() để khởi động máy chủ web cục bộ tại cổng 8080.
-"""
+from nicegui import ui
+from src.ui import dung_khung_giao_dien
 
-from nicegui import ui  # dùng để xây dựng và điều khiển giao diện web tương tác bằng Python
-from src.ui import dung_khung_giao_dien  # file nội bộ của dự án: tạo toàn bộ khung giao diện
-
+# __mp_main__ hỗ trợ khởi tạo tiến trình con trên Windows
 if __name__ in {"__main__", "__mp_main__"}:
-    # 1. Xây dựng giao diện ứng dụng (gồm các tab chức năng và thanh điều hướng)
     dung_khung_giao_dien()
 
-    # 2. Khởi chạy máy chủ web NiceGUI (ui.run lắng nghe kết nối từ trình duyệt)
     ui.run(
-        title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",  # tiêu đề hiển thị trên tab trình duyệt
-        favicon="🔐",  
-        port=8080,  # mở cổng dịch vụ web tại địa chỉ cục bộ http://localhost:8080
-        reload=True,  # tự động nạp lại giao diện khi chỉnh sửa mã nguồn
+        title="RC4 Lab — Hệ Mã Dòng TinyRC4 & RC4 NEU",
+        favicon="🔐",
+        port=8080,
+        reload=True,
     )

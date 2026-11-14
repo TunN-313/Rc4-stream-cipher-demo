@@ -1,8 +1,4 @@
-"""
-BƯỚC 2: KHỞI TẠO HOÁN VỊ KSA (src/core/buoc2_khoi_tao_ksa.py)
-Nhiệm vụ: Cài đặt thuật toán xáo trộn mảng S bằng khóa K (Key-Scheduling Algorithm)
-cho cả mô hình TinyRC4 3-bit (modulo 8) và RC4 Chuẩn 8-bit (modulo 256).
-"""
+"""Bước 2: Thuật toán sinh hoán vị KSA cho TinyRC4 và RC4."""
 
 from __future__ import annotations
 from dataclasses import dataclass
@@ -11,7 +7,7 @@ from typing import List, Tuple, Dict, Any
 
 @dataclass
 class KSAStep:
-    """Lưu chi tiết 1 vòng lặp trong giai đoạn KSA."""
+    """Lưu vết trạng thái mảng S và các biến chỉ mục tại từng vòng lặp KSA."""
     step_i: int
     j_before: int
     s_i_before: int
@@ -22,10 +18,7 @@ class KSAStep:
 
 
 def rc4_ksa(key_bytes: bytes) -> List[int]:
-    """
-    KSA cho RC4 chuẩn 8-bit (256 phần tử, modulo 256):
-    Khởi tạo S[i] = i, xáo trộn bằng T[i] = K[i % len(K)].
-    """
+    """Khởi tạo và xáo trộn mảng S 256 phần tử theo modulo 256."""
     if not key_bytes:
         raise ValueError("Khóa RC4 không được rỗng (độ dài từ 1 đến 256 byte).")
     if len(key_bytes) > 256:
@@ -43,10 +36,7 @@ def rc4_ksa(key_bytes: bytes) -> List[int]:
 
 
 def ksa_tiny_rc4(khoa_so: List[int]) -> Tuple[List[int], List[KSAStep]]:
-    """
-    KSA cho TinyRC4 (N=8 phần tử, Modulo 8):
-    Khởi tạo mảng S = [0..7], dùng khóa K để hoán vị 8 vòng.
-    """
+    """Khởi tạo và ghi nhận từng bước hoán vị mảng S (N=8 phần tử, modulo 8) cho TinyRC4."""
     if not khoa_so:
         raise ValueError("Khóa TinyRC4 không được để trống.")
 

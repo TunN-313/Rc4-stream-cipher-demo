@@ -1,17 +1,11 @@
-"""
-BƯỚC 1: XỬ LÝ ĐẦU VÀO, UTF-8 & QUẢN LÝ KHÓA (src/core/buoc1_xu_ly_dau_vao.py)
-Nhiệm vụ:
-  - Phân tích cấu trúc byte Unicode / UTF-8 (Bảng 1, Bảng 2.2, 2.3, 2.4).
-  - Chuyển đổi linh hoạt giữa nhị phân (bytes), số nguyên n-bit, chuỗi Hex.
-  - Quản lý và sinh khóa ngẫu nhiên đạt chuẩn an toàn mật mã CSPRNG.
-"""
+"""Bước 1: Tiền xử lý dữ liệu đầu vào, phân tích UTF-8 và quản lý khóa."""
 
 from __future__ import annotations
 import secrets
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence, Tuple
 
-# Bảng quy đổi 8 chữ cái 3-bit cho TinyRC4 
+# Bảng ánh xạ 8 ký tự cho TinyRC4: A..H tương ứng 0..7
 TINY_ALPHABET: Dict[str, int] = {
     "A": 0b000, "B": 0b001, "C": 0b010, "D": 0b011,
     "E": 0b100, "F": 0b101, "G": 0b110, "H": 0b111,
@@ -21,13 +15,13 @@ KHOA_TOI_DA_RC4 = 256
 KHOA_TOI_DA_TINY = 8
 
 
-# ==============================================================================
-# CẤU TRÚC DỮ LIỆU UTF-8
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Cấu trúc dữ liệu mô hình hóa UTF-8
+# -----------------------------------------------------------------------------
 
 @dataclass
 class Utf8CharBreakdown:
-    """Phân rã cấu trúc UTF-8 của một ký tự Unicode."""
+    """Phân rã cấu trúc biểu diễn UTF-8 của một ký tự Unicode."""
     char: str
     codepoint: str
     codepoint_dec: int
@@ -42,7 +36,7 @@ class Utf8CharBreakdown:
 
 @dataclass
 class Utf8Rc4Step:
-    """Chi tiết từng bước 8-bit XOR giữa byte UTF-8 và byte dòng khóa RC4."""
+    """Dữ liệu phép XOR 8-bit giữa byte UTF-8 và byte dòng khóa RC4 tương ứng."""
     r: int
     char_ref: str
     p_val: int
@@ -59,7 +53,7 @@ class Utf8Rc4Step:
 
 @dataclass
 class Utf8DecodeFailure:
-    """Thông tin chẩn đoán lỗi khi giải mã UTF-8 trực tiếp trên bản mã RC4."""
+    """Chẩn đoán lỗi vi phạm tiền tố RFC 3629 khi giải mã trực tiếp bản mã sang UTF-8."""
     err_index: int
     err_byte_val: int
     err_byte_bin: str
@@ -71,38 +65,40 @@ class Utf8DecodeFailure:
     python_err_msg: str
 
 
-# ==============================================================================
-# CHUYỂN ĐỔI ĐỊNH DẠNG DỮ LIỆU
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Chuyển đổi định dạng dữ liệu
+# -----------------------------------------------------------------------------
 
 def van_ban_sang_bytes(van_ban: str) -> bytes:
-    """Chuyển chuỗi văn bản UTF-8 sang mảng byte nhị phân."""
+    """Mã hóa chuỗi văn bản sang mảng byte UTF-8."""
     return van_ban.encode("utf-8")
 
 
 def bytes_sang_van_ban(du_lieu: bytes) -> str:
-    """Giải mã an toàn mảng byte thành chuỗi UTF-8."""
+    """Giải mã byte sang chuỗi UTF-8, thay thế byte lỗi bằng ký tự dự phòng U+FFFD."""
     return du_lieu.decode("utf-8", errors="replace")
 
 
 def bytes_sang_hex(data: bytes) -> str:
-    """Chuyển đổi dữ liệu nhị phân thành chuỗi Hexadecimal viết hoa."""
+    """Chuyển mảng byte thành chuỗi Hexadecimal viết hoa."""
     return data.hex().upper()
 
 
 def hex_sang_bytes(text: str) -> bytes:
-    """Chuyển đổi chuỗi Hex thành mảng byte nhị phân."""
+    """Chuyển chuỗi Hex thành mảng byte nhị phân."""
     clean = "".join(text.split())
+    # Đệm '0' ở đầu nếu chuỗi lẻ ký tự để tạo thành cặp byte hex hợp lệ
     if len(clean) % 2 != 0:
         clean = "0" + clean
     return bytes.fromhex(clean)
 
 
 def bytes_sang_so(data: bytes, n: int = 3) -> List[int]:
-    """Tách mảng bytes thành danh sách các số nguyên n-bit (0..7 cho TinyRC4)."""
+    """Tách chuỗi byte thành danh sách số nguyên n-bit (0..7 với TinyRC4)."""
     if not data:
         return []
     bit_str = "".join(f"{b:08b}" for b in data)
+    # Đệm bit '0' vào cuối để độ dài chuỗi bit chia hết cho n
     rem = len(bit_str) % n
     if rem != 0:
         bit_str += "0" * (n - rem)
@@ -110,7 +106,7 @@ def bytes_sang_so(data: bytes, n: int = 3) -> List[int]:
 
 
 def so_sang_bytes(nums: Sequence[int], n: int = 3, do_dai_goc: Optional[int] = None) -> bytes:
-    """Gom danh sách số nguyên n-bit trở lại thành chuỗi bytes chuẩn 8-bit."""
+    """Gộp danh sách số nguyên n-bit trở lại thành chuỗi byte 8-bit."""
     if not nums:
         return b""
     bit_str = "".join(f"{num:0{n}b}" for num in nums)
@@ -120,15 +116,16 @@ def so_sang_bytes(nums: Sequence[int], n: int = 3, do_dai_goc: Optional[int] = N
         if len(chunk) == 8:
             byte_list.append(int(chunk, 2))
     res = bytes(byte_list)
+    # Cắt đúng độ dài ban đầu nếu có chỉ định để loại bỏ các bit đệm ở cuối
     return res[:do_dai_goc] if do_dai_goc is not None else res
 
 
-# ==============================================================================
-# PHÂN TÍCH UTF-8 & MINH HỌA
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Phân tích cấu trúc UTF-8 & Trace dòng khóa
+# -----------------------------------------------------------------------------
 
 def phan_tich_ky_tu_utf8(text: str) -> List[Utf8CharBreakdown]:
-    """Phân tích từng ký tự trong chuỗi văn bản ra mã điểm, số byte và mẫu bit UTF-8."""
+    """Phân tách từng ký tự thành mã điểm Unicode, số byte và mẫu bit UTF-8 theo RFC 3629."""
     result: List[Utf8CharBreakdown] = []
     for ch in text:
         b = ch.encode("utf-8")
@@ -179,7 +176,7 @@ def phan_tich_ky_tu_utf8(text: str) -> List[Utf8CharBreakdown]:
 
 
 def trace_rc4_utf8_xor(text: str, keystream_bytes: Sequence[int]) -> List[Utf8Rc4Step]:
-    """Tạo bảng diễn giải từng bước 8-bit XOR giữa byte bản rõ UTF-8 và byte dòng khóa RC4."""
+    """Lập bảng chi tiết phép XOR 8-bit giữa từng byte UTF-8 và byte dòng khóa RC4."""
     p_bytes = text.encode("utf-8")
     char_map: List[str] = []
     for ch in text:
@@ -220,7 +217,7 @@ def trace_rc4_utf8_xor(text: str, keystream_bytes: Sequence[int]) -> List[Utf8Rc
 
 
 def kiem_tra_giai_ma_utf8_ban_ma(ciphertext: bytes) -> Tuple[bool, Optional[Utf8DecodeFailure]]:
-    """Kiểm tra giải mã UTF-8 trực tiếp trên bản mã để phát hiện vi phạm tiền tố RFC 3629."""
+    """Kiểm tra giải mã UTF-8 trên bản mã để phát hiện vi phạm định dạng tiền tố RFC 3629."""
     try:
         ciphertext.decode("utf-8")
         return True, None
@@ -250,7 +247,7 @@ def kiem_tra_giai_ma_utf8_ban_ma(ciphertext: bytes) -> Tuple[bool, Optional[Utf8
         elif 0xF0 <= bad_byte <= 0xF4:
             reason = f"Byte 0x{bad_hex} báo hiệu chuỗi 4-byte, nhưng dữ liệu không thỏa mãn giới hạn Unicode."
         elif bad_byte >= 0xF5:
-            reason = f"Byte 0x{bad_hex} nằm ngoài phạm vi biểu diễn của chuẩn UTF-8 (vượt quá 4 byte)."
+            reason = f"Byte 0x{bad_hex} nằm ngoài phạm vi biểu diễn UTF-8 (vượt quá 4 byte)."
 
         failure = Utf8DecodeFailure(
             err_index=idx,
@@ -266,19 +263,19 @@ def kiem_tra_giai_ma_utf8_ban_ma(ciphertext: bytes) -> Tuple[bool, Optional[Utf8
         return False, failure
 
 
-# ==============================================================================
-# QUẢN LÝ & SINH KHÓA BẢO MẬT
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Quản lý & sinh khóa
+# -----------------------------------------------------------------------------
 
 def sinh_khoa_rc4(so_byte: int = 16) -> bytes:
-    """Sinh khóa RC4 ngẫu nhiên """
+    """Sinh khóa RC4 ngẫu nhiên."""
     if so_byte < 1 or so_byte > KHOA_TOI_DA_RC4:
         raise ValueError(f"Độ dài khóa RC4 phải từ 1 đến {KHOA_TOI_DA_RC4} byte.")
     return secrets.token_bytes(so_byte)
 
 
 def khoa_tu_chuoi(chuoi_khoa: str) -> bytes:
-    """Chuyển chuỗi văn bản thường thành mảng byte làm khóa bí mật."""
+    """Chuyển chuỗi ký tự thành mảng byte khóa bí mật UTF-8."""
     khoa_bytes = chuoi_khoa.encode("utf-8")
     if not khoa_bytes:
         raise ValueError("Khóa bí mật không được rỗng.")
@@ -288,7 +285,7 @@ def khoa_tu_chuoi(chuoi_khoa: str) -> bytes:
 
 
 def khoa_tu_hex(chuoi_hex: str) -> bytes:
-    """Chuyển chuỗi Hex thành mảng byte làm khóa bí mật."""
+    """Chuyển chuỗi Hex thành mảng byte khóa bí mật."""
     khoa_bytes = hex_sang_bytes(chuoi_hex)
     if not khoa_bytes:
         raise ValueError("Khóa Hex không được rỗng.")
@@ -298,12 +295,12 @@ def khoa_tu_hex(chuoi_hex: str) -> bytes:
 
 
 def sinh_khoa_tiny(so_phan_tu: int = 3) -> List[int]:
-    """Sinh ngẫu nhiên khóa cho TinyRC4 gồm các số từ 0 đến 7."""
+    """Sinh ngẫu nhiên khóa cho TinyRC4 gồm các số nguyên 3-bit (0..7)."""
     return [secrets.randbelow(KHOA_TOI_DA_TINY) for _ in range(so_phan_tu)]
 
 
 def tiny_chuoi_sang_so(van_ban: str) -> List[int]:
-    """Chuyển đổi chuỗi chữ cái A-H thành danh sách số 3-bit (0-7)."""
+    """Chuyển chuỗi ký tự (A..H hoặc 0..7) thành danh sách số nguyên 3-bit."""
     ket_qua = []
     for c in van_ban.upper():
         if c in TINY_ALPHABET:
@@ -314,5 +311,5 @@ def tiny_chuoi_sang_so(van_ban: str) -> List[int]:
 
 
 def tiny_so_sang_chuoi(cac_so: List[int]) -> str:
-    """Chuyển đổi danh sách số 3-bit (0-7) thành chữ cái A-H."""
+    """Chuyển danh sách số nguyên 3-bit (0..7) thành chuỗi ký tự A..H."""
     return "".join(INV_TINY_ALPHABET.get(n % 8, "A") for n in cac_so)

@@ -1,11 +1,4 @@
-"""
-Tab 5: Thám Mã & Tấn Công Bẻ Khóa FMS RC4 (Fluhrer–Mantin–Shamir Attack)
-========================================================================
-Mô phỏng kỹ thuật thám mã phục hồi khóa bí mật FMS (2001) trên giao thức WEP:
-- Khai thác lớp IV yếu (A + 3, 255, X) kết hợp byte bản rõ đầu P0 = 0xAA (SNAP/LLC).
-- Bỏ phiếu xác suất (voting) qua KSA từng phần để tái tạo từng byte khóa K.
-- Đối chiếu độc lập trên 50 gói tin ngẫu nhiên để xác minh kết quả.
-"""
+"""Tab 5: Tấn công khôi phục khóa FMS trên giao thức WEP."""
 
 from __future__ import annotations
 import asyncio
@@ -22,22 +15,16 @@ from src.core import (
 
 
 def dung_tab_tham_ma() -> None:
-    """
-    Xây dựng giao diện Tab 5: Chuyên trang Thám mã bẻ khóa FMS WEP.
-    """
+    """Khởi tạo giao diện mô phỏng tấn công khôi phục khóa FMS trên WEP."""
     with ui.column().classes("w-full gap-6 max-w-6xl mx-auto pb-8"):
-
-        # ======================================================================
-        # KHUNG TẤN CÔNG KHÔI PHỤC KHÓA FMS TRONG GIAO THỨC WEP
-        # ======================================================================
         with ui.card().classes("w-full p-6 space-y-4"):
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
                 with ui.row().classes("items-center gap-3"):
                     with ui.row().classes("w-9 h-9 rounded-lg bg-red-50 text-red-700 items-center justify-center border border-red-200"):
                         ui.icon("lock_open", size="xs")
                     with ui.column().classes("gap-0"):
-                        ui.label("Tấn Công Khôi Phục Khóa FMS trong Giao Thức WEP").classes("text-base font-bold text-slate-800")
-                        ui.label("Fluhrer–Mantin–Shamir (2001) • Khôi phục chính xác khóa bí mật K • Mô phỏng thực nghiệm WEP").classes("text-xs text-slate-500")
+                        ui.label("Tấn công khôi phục khóa FMS trên WEP").classes("text-base font-bold text-slate-800")
+                        ui.label("Phương pháp Fluhrer–Mantin–Shamir (2001) • Khôi phục khóa bí mật K").classes("text-xs text-slate-500")
 
             with ui.column().classes("w-full bg-red-50/70 border border-red-200/80 p-3.5 rounded-xl gap-2"):
                 with ui.row().classes("w-full items-start gap-2"):
@@ -48,12 +35,11 @@ def dung_tab_tham_ma() -> None:
                 ui.markdown(
                     r"* **Cơ chế ghép khóa WEP**: Khóa từng gói tin được ghép từ `IV || K` với `IV` (3 byte) truyền công khai."
                     "\n"
-                    r"* **Suy luận tuần tự**: Bằng cách thu thập các gói tin chứa lớp IV yếu `(A + 3, 0xFF, X)` và biết byte đầu `P[0] = 0xAA` (SNAP/LLC header), "
+                    r"* **Suy luận tuần tự**: Bằng cách thu thập các gói tin chứa lớp IV yếu `(A + 3, 0xFF, X)` và biết byte đầu `P[0] = 0xAA` (tiêu đề SNAP/LLC), "
                     r"kẻ tấn công mô phỏng KSA đã biết để bỏ phiếu tìm từng byte `K[A]` qua xác suất bảo toàn trạng thái (e⁻³ ≈ 5%). "
                     r"Sau khi tìm đủ các byte, hệ thống kiểm chứng độc lập trên 50 gói để ngăn ngừa sai lệch dây chuyền."
                 ).classes("text-xs text-red-900/90 leading-relaxed pl-6")
 
-            # Điều khiển đầu vào
             with ui.row().classes("w-full items-center gap-3 flex-wrap"):
                 fms_key_input = ui.input(
                     label="Khóa bí mật K (chuỗi hoặc 0xHex)",
@@ -91,9 +77,8 @@ def dung_tab_tham_ma() -> None:
             fms_progress = ui.linear_progress(value=0.0, show_value=False).props("instant-feedback stripe color=negative").classes("w-full")
             fms_progress.visible = False
 
-            # --- BỘ KHUNG TĨNH CỐ ĐỊNH (KHÔNG DÙNG .clear() TRÁNH CRASH VUE VIRTUAL DOM) ---
+            # Dùng layout tĩnh và mutate properties thay vì .clear() để tránh xung đột reactivity trong Vue Virtual DOM
             with ui.column().classes("w-full gap-4"):
-                # 1. Khung tóm tắt đối chiếu
                 with ui.row().classes("w-full items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex-wrap gap-2"):
                     with ui.row().classes("items-center gap-2"):
                         ui.label("Khóa bí mật:").classes("text-xs text-slate-500 font-bold")
@@ -106,7 +91,6 @@ def dung_tab_tham_ma() -> None:
                         badge_verify = ui.badge("").classes("text-xs")
                         badge_time = ui.badge("").classes("text-xs")
 
-                # 2. Bảng kết quả từng byte khóa (Bảng 2.8.5)
                 cols = [
                     {"name": "byte_name", "label": "Byte khóa", "field": "byte_name", "align": "center"},
                     {"name": "true_val", "label": "Giá trị thật", "field": "true_val", "align": "left"},
@@ -126,7 +110,6 @@ def dung_tab_tham_ma() -> None:
                     "w-full border border-slate-200/80 rounded-xl overflow-hidden font-mono text-xs shadow-2xs"
                 )
 
-                # Biểu đồ ECharts phân bố phiếu bầu cho byte được chọn
                 with ui.column().classes("w-full gap-2"):
                     chart_title = ui.label("Biểu đồ Phân Bố Phiếu Bầu:").classes("text-xs font-bold text-slate-700")
                     initial_chart_opts = {
@@ -143,12 +126,11 @@ def dung_tab_tham_ma() -> None:
                     }
                     chart = ui.echart(initial_chart_opts).classes("w-full h-52")
 
-                # 3. Nhận xét phân tích mật mã học
                 with ui.column().classes("w-full p-4 bg-slate-50 border border-slate-200/80 rounded-xl gap-2 text-xs text-slate-700"):
                     ui.label("Nhận xét Mật Mã Học & Đánh Giá An Toàn:").classes("font-bold text-slate-800 text-sm")
                     ui.markdown(
                         """
-* **Tỷ lệ tín hiệu trên nhiễu**: Xác suất trạng thái KSA được bảo toàn để cho ra manh mối tin cậy chỉ khoảng `e⁻³ ≈ 0.05` (khoảng 20 gói tin mới có 1 gói hữu ích). Do đó, cần thu thập đủ lượng mẫu (ví dụ 600 gói/byte) thì giá trị đúng mới nhận số phiếu vượt trội khỏi mức nhiễu ngẫu nhiên.
+* **Tỷ lệ tín hiệu trên nhiễu**: Xác suất trạng thái KSA được bảo toàn để cho ra manh mối tin cậy chỉ khoảng `e⁻³ ≈ 0.05` (khoảng 20 gói tin mới có 1 gói hữu ích). Do đó, cần thu thập đủ lượng mẫu (ví dụ 600 gói/byte) thì giá trị đúng mới có số phiếu tách biệt khỏi mức nhiễu ngẫu nhiên.
 * **Hiện tượng byte sít sao**: Byte cuối `K[4]` chỉ dẫn đầu với cách biệt nhỏ (17 phiếu so với 11 phiếu của giá trị đứng nhì). Vì vậy, việc chọn ứng viên nhiều phiếu nhất chưa thể khẳng định đúng nếu chưa qua bước kiểm chứng.
 * **Tầm quan trọng của bước kiểm chứng**: Sau khi có khóa ứng viên, bắt buộc phải khởi tạo lại RC4 và đối chiếu đầu ra với dữ liệu bắt được trên 50 gói độc lập để ngăn chặn lỗi sai lệch dây chuyền.
 * **4 Giới hạn mật mã**:
@@ -207,12 +189,11 @@ def dung_tab_tham_ma() -> None:
                 current_res = res
                 fms_run_seq += 1
 
-                # Cập nhật thông tin tóm tắt
                 lbl_sec_key.text = f"{res.secret_key_bytes} (Hex: {res.secret_key_bytes.hex().upper()})"
                 lbl_rec_key.text = f"{res.recovered_key_bytes} (Hex: {res.recovered_key_bytes.hex().upper()})"
                 lbl_rec_key.style(f"color: {'#047857' if res.all_matched else '#be123c'}")
 
-                badge_match.text = "Trùng khớp 100%" if res.all_matched else "Chưa khớp hoàn toàn"
+                badge_match.text = "Khớp hoàn toàn" if res.all_matched else "Chưa khớp hoàn toàn"
                 badge_match.props(f"color={'positive' if res.all_matched else 'negative'}")
 
                 pct = res.verified_packets / max(res.total_verified_packets, 1) * 100
@@ -224,7 +205,7 @@ def dung_tab_tham_ma() -> None:
 
                 lbl_packet_count.text = f"Tổng gói tin IV yếu đã xét: {res.collected_packets_count} gói"
 
-                # Cập nhật dữ liệu bảng với id duy nhất theo lượt chạy để tránh xung đột Vue Virtual DOM
+                # id duy nhất theo từng lượt chạy để giao diện không dùng lại phần tử cũ làm lệch dòng chọn
                 rows = [
                     {
                         "id": f"fms_{fms_run_seq}_{b.byte_index}",
@@ -296,6 +277,7 @@ def dung_tab_tham_ma() -> None:
                     num_v = int(fms_verify_input.value or 50)
                     seed_val = 42 if fms_seed_check.value else None
 
+                    # Chạy thuật toán thám mã trong executor để giải phóng async thread của NiceGUI
                     loop = asyncio.get_running_loop()
                     res: FMSAttackResult = await loop.run_in_executor(
                         None,
@@ -317,6 +299,5 @@ def dung_tab_tham_ma() -> None:
 
             btn_run_fms.on_click(run_fms_ui)
 
-            # Hiển thị sẵn kết quả mẫu chuẩn ban đầu
             initial_fms_res = simulate_fms_wep_attack("KEY_1", 600, 0xAA, 50, 42)
             render_fms_result(initial_fms_res)

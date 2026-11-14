@@ -1,9 +1,4 @@
-"""
-BƯỚC 3: SINH DÒNG KHÓA PRGA & MÃ HÓA XOR (src/core/buoc3_sinh_so_prga.py)
-Nhiệm vụ: Vòng lặp sinh số giả ngẫu nhiên PRGA (Pseudo-Random Generation Algorithm)
-và thực hiện phép XOR đối xứng để mã hóa và giải mã.
-Bao gồm cả TinyRC4 3-bit trực quan trên lớp và RC4 Chuẩn 8-bit (xử lý văn bản & tệp tin).
-"""
+"""Bước 3: Sinh dòng khóa PRGA và mã hóa đối xứng XOR."""
 
 from __future__ import annotations
 import base64
@@ -21,13 +16,13 @@ from src.core.buoc1_xu_ly_dau_vao import (
 from src.core.buoc2_khoi_tao_ksa import KSAStep, ksa_tiny_rc4, rc4_ksa
 
 
-# ==============================================================================
-# CẤU TRÚC DỮ LIỆU KẾT QUẢ THUẬT TOÁN
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Cấu trúc dữ liệu kết quả thuật toán
+# -----------------------------------------------------------------------------
 
 @dataclass
 class PRGAStep:
-    """Lưu 1 bước của giai đoạn PRGA sinh số ngẫu nhiên."""
+    """Lưu vết trạng thái mảng S, chỉ mục và kết quả XOR tại một bước PRGA."""
     step_idx: int
     i_val: int
     j_val: int
@@ -45,7 +40,7 @@ class PRGAStep:
 
 @dataclass
 class TinyRC4Result:
-    """Kết quả mô phỏng TinyRC4 3-bit."""
+    """Kết quả mô phỏng toàn bộ quy trình KSA và PRGA trên mô hình TinyRC4 3-bit."""
     input_text: str
     input_bits: str
     key_list: List[int]
@@ -63,7 +58,7 @@ class TinyRC4Result:
 
 @dataclass
 class FullRC4Result:
-    """Kết quả thực thi thuật toán RC4 8-bit."""
+    """Kết quả thực thi mã hóa/giải mã RC4 8-bit."""
     input_bytes: bytes
     key_bytes: bytes
     output_bytes: bytes
@@ -73,25 +68,23 @@ class FullRC4Result:
 
     @property
     def output_hex(self) -> str:
-        """Chuyển đổi dữ liệu bản mã thành chuỗi Hex viết hoa."""
         return self.output_bytes.hex().upper()
 
     @property
     def output_base64(self) -> str:
-        """Mã hóa bản mã thành chuỗi Base64 an toàn cho web."""
         return base64.b64encode(self.output_bytes).decode("ascii")
 
 
-# ==============================================================================
-# THUẬT TOÁN RC4 CHUẨN 8-BIT
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Thuật toán RC4 8-bit
+# -----------------------------------------------------------------------------
 
 def rc4_crypt_chunks(
     data: bytes,
     key_bytes: bytes,
     chunk_size: int = 65536,
 ) -> Iterator[bytes]:
-    """Generator mã hóa RC4 theo từng khối nhỏ để xử lý tệp tin dung lượng lớn mà không tốn RAM."""
+    """Mã hóa/giải mã theo khối để xử lý tệp dung lượng lớn mà không tốn nhiều bộ nhớ."""
     if not data:
         return
 
@@ -113,7 +106,7 @@ def rc4_crypt_chunks(
 
 
 def rc4_crypt(data: bytes, key_bytes: bytes) -> bytes:
-    """Mã hóa hoặc giải mã toàn bộ khối dữ liệu bằng RC4 chuẩn 8-bit (cùng 1 hàm đối xứng)."""
+    """Mã hóa hoặc giải mã dữ liệu bằng RC4 8-bit (phép XOR tự nghịch đảo)."""
     if not data:
         return b""
     return b"".join(rc4_crypt_chunks(data, key_bytes, chunk_size=65536))
@@ -124,11 +117,11 @@ def rc4_crypt_with_details(
     key_bytes: bytes,
     preview_limit: int = 16,
 ) -> FullRC4Result:
-    """Thực thi RC4 kèm đo thời gian bấm giờ và trích xuất dòng khóa mẫu."""
+    """Thực thi RC4 kèm đo thời gian và trích xuất mẫu dòng khóa ban đầu."""
     start_time = time.perf_counter()
     s_after_ksa = rc4_ksa(key_bytes)
 
-    # Sinh dòng khóa xem trước
+    # Trích xuất một số byte dòng khóa đầu tiên phục vụ hiển thị trực quan mà không tiêu hao mảng trạng thái chính
     s_preview = list(s_after_ksa)
     keystream_preview: List[int] = []
     i = j = 0
@@ -152,12 +145,12 @@ def rc4_crypt_with_details(
     )
 
 
-# ==============================================================================
-# THUẬT TOÁN TINYRC4 3-BIT
-# ==============================================================================
+# -----------------------------------------------------------------------------
+# Thuật toán TinyRC4 3-bit
+# -----------------------------------------------------------------------------
 
 def parse_tiny_input(raw: str) -> Tuple[List[int], str, str]:
-    """Phân tích chuỗi chữ cái A-H hoặc số 0-7 nhập vào."""
+    """Chuẩn hóa dữ liệu đầu vào TinyRC4 từ chuỗi chữ cái (A..H) hoặc chuỗi số (0..7)."""
     clean = raw.strip().upper()
     if not clean:
         raise ValueError("Dữ liệu bản rõ không được để trống.")
@@ -182,7 +175,7 @@ def parse_tiny_input(raw: str) -> Tuple[List[int], str, str]:
 
 
 def parse_tiny_key(raw: Union[str, Sequence[int]]) -> List[int]:
-    """Chuẩn hóa khóa TinyRC4 thành danh sách số nguyên 0-7."""
+    """Chuẩn hóa khóa TinyRC4 thành danh sách số nguyên modulo 8."""
     if isinstance(raw, str):
         cleaned = raw.replace(";", ",").replace(" ", ",")
         tokens = [tok.strip() for tok in cleaned.split(",") if tok.strip()]
@@ -212,7 +205,7 @@ def run_tiny_rc4(
     raw_input: str,
     raw_key: Union[str, Sequence[int]],
 ) -> TinyRC4Result:
-    """Thực thi toàn bộ quy trình KSA và PRGA của TinyRC4 3-bit."""
+    """Thực thi đầy đủ quy trình KSA và PRGA của TinyRC4 (N=8, modulo 8)."""
     input_nums, input_text, input_bits = parse_tiny_input(raw_input)
     key_list = parse_tiny_key(raw_key)
 
