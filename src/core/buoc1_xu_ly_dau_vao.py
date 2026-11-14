@@ -3,7 +3,7 @@
 from __future__ import annotations
 import secrets
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 # Bảng ánh xạ 8 ký tự cho TinyRC4: A..H tương ứng 0..7
 TINY_ALPHABET: Dict[str, int] = {
@@ -175,20 +175,41 @@ def phan_tich_ky_tu_utf8(text: str) -> List[Utf8CharBreakdown]:
     return result
 
 
-def trace_rc4_utf8_xor(text: str, keystream_bytes: Sequence[int]) -> List[Utf8Rc4Step]:
-    """Lập bảng chi tiết phép XOR 8-bit giữa từng byte UTF-8 và byte dòng khóa RC4."""
+def trace_rc4_utf8_xor(
+    text: str,
+    key_or_keystream: Union[bytes, Sequence[int]],
+    is_keystream: bool = False,
+) -> List[Utf8Rc4Step]:
+    """Lập bảng chi tiết phép XOR 8-bit giữa từng byte UTF-8 và byte dòng khóa RC4 (Mục 2.1.4, Bảng 2.5).
+
+    Mỗi byte bản rõ P_r được XOR với 1 byte dòng khóa Z_r: C_r = P_r XOR Z_r.
+    Chuỗi 'Aà' với khóa K=[1, 2, 3, 4, 5] cho dòng khóa đầu Z=[178, 57, 99],
+    bản mã C=[243, 250, 195] (F3 FA C3).
+    """
     p_bytes = text.encode("utf-8")
+    if not p_bytes:
+        return []
+
     char_map: List[str] = []
     for ch in text:
         cb = ch.encode("utf-8")
         for _ in cb:
             char_map.append(ch)
 
+    if is_keystream:
+        keystream_bytes = list(key_or_keystream)
+        cipher_bytes = bytes([p ^ (keystream_bytes[i] if i < len(keystream_bytes) else 0) for i, p in enumerate(p_bytes)])
+    else:
+        from src.core.buoc3_sinh_so_prga import rc4_crypt
+        key_bytes = bytes(key_or_keystream)
+        cipher_bytes = rc4_crypt(p_bytes, key_bytes)
+        keystream_bytes = [p ^ c for p, c in zip(p_bytes, cipher_bytes)]
+
     steps: List[Utf8Rc4Step] = []
     for r in range(len(p_bytes)):
         p_val = p_bytes[r]
         z_val = keystream_bytes[r] if r < len(keystream_bytes) else 0
-        c_val = p_val ^ z_val
+        c_val = cipher_bytes[r] if r < len(cipher_bytes) else (p_val ^ z_val)
         p_bin = f"{p_val:08b}"
         z_bin = f"{z_val:08b}"
         c_bin = f"{c_val:08b}"

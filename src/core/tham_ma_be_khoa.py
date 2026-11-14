@@ -93,6 +93,7 @@ def simulate_fms_wep_attack(
     key_len = len(actual_key)
     recovered = bytearray()
     byte_results: List[FMSByteResult] = []
+    collected_packets: List[Tuple[Tuple[int, int, int], int]] = []
 
     for A in range(key_len):
         votes = [0] * 256
@@ -110,6 +111,7 @@ def simulate_fms_wep_attack(
 
             z0 = fms_predict_first_output(full_packet_key)
             c0 = p0 ^ z0
+            collected_packets.append((iv, c0))
             z0_observed = c0 ^ p0
 
             S_part, j_part = fms_partial_ksa(known_prefix)
@@ -138,15 +140,23 @@ def simulate_fms_wep_attack(
         )
 
     all_matched = (bytes(recovered) == actual_key)
+    
+    # Kiểm chứng độc lập trên actual_verify gói tin đã bắt (captured packets)
+    # Kẻ tấn công chỉ dùng IV công khai và khóa vừa khôi phục (recovered), KHÔNG dùng khóa thật (actual_key)
+    verify_sample_size = min(actual_verify, len(collected_packets))
+    sample_check = (
+        rng.sample(collected_packets, verify_sample_size)
+        if (rng is not None and verify_sample_size > 0)
+        else collected_packets[:verify_sample_size]
+    )
     verified_count = 0
-    # Kiểm chứng độc lập trên các gói tin ngẫu nhiên để xác nhận khóa khôi phục
-    if all_matched:
-        for _ in range(actual_verify):
-            rand_iv = bytes(rng.getrandbits(8) for _ in range(3)) if rng is not None else secrets.token_bytes(3)
-            real_out = fms_predict_first_output(rand_iv + actual_key)
-            rec_out = fms_predict_first_output(rand_iv + bytes(recovered))
-            if real_out == rec_out:
-                verified_count += 1
+    rec_bytes = bytes(recovered)
+
+    for iv, c0 in sample_check:
+        cand_packet_key = bytes(iv) + rec_bytes
+        z0_pred = fms_predict_first_output(cand_packet_key)
+        if (z0_pred ^ p0) == c0:
+            verified_count += 1
 
     elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 
@@ -158,9 +168,9 @@ def simulate_fms_wep_attack(
         p0_byte=p0,
         byte_results=byte_results,
         verified_packets=verified_count,
-        total_verified_packets=actual_verify,
+        total_verified_packets=verify_sample_size,
         elapsed_ms=elapsed_ms,
-        collected_packets_count=key_len * samples_per_byte,
+        collected_packets_count=len(collected_packets),
     )
 
 

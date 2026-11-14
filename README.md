@@ -40,7 +40,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 *Các thư viện sử dụng:*
-- `nicegui>=3.0,<4.0`: Giao diện web trực quan bằng GUI Python.
+- `nicegui>=2.0.0,<4.0.0`: Giao diện web trực quan bằng GUI Python.
 - `pillow>=10.0.0`: Xử lý hình ảnh nhị phân (.png, .jpg).
 - `pycryptodome>=3.18.0`: Thư viện mật mã đối chiếu kiểm thử (ARC4).
 

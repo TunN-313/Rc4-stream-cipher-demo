@@ -220,7 +220,7 @@ def dung_tab_rc4_van_ban() -> None:
                         "</table>"
                         "</div>"
                     )
-                    ui.html(table_1_html).classes("w-full")
+                    ui.html(table_1_html, sanitize=False).classes("w-full")
 
                 with ui.column().classes("w-full gap-2"):
                     with ui.row().classes("w-full items-center justify-between"):
@@ -262,7 +262,7 @@ def dung_tab_rc4_van_ban() -> None:
                         "</table>"
                         "</div>"
                     )
-                    ui.html(table_2_html).classes("w-full")
+                    ui.html(table_2_html, sanitize=False).classes("w-full")
 
                 with ui.row().classes("w-full items-start gap-2.5 p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl text-xs text-rose-950"):
                     ui.icon("info", size="xs").classes("text-rose-600 mt-0.5 shrink-0")
