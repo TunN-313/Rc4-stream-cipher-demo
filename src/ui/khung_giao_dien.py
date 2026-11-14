@@ -17,6 +17,10 @@ def _tich_hop_css() -> None:
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
         <style>
+            * {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
             html, body {
                 height: 100vh !important;
                 margin: 0 !important;
@@ -24,12 +28,14 @@ def _tich_hop_css() -> None:
                 overflow: hidden !important;
                 background-color: #f8fafc !important;
                 color: #0f172a !important;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
             }
-            body, button, input, textarea, select, .q-card {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            body, button, input, textarea, select, table, th, td, .q-card, .q-tab, .q-btn, .q-field {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
             }
-            code, pre, .font-mono {
-                font-family: 'JetBrains Mono', Consolas, monospace !important;
+            code, pre, .font-mono, .q-table td.font-mono, .q-table th.font-mono {
+                font-family: 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
+                font-feature-settings: "liga" 0, "calt" 0;
             }
             ::-webkit-scrollbar {
                 width: 6px;

@@ -46,7 +46,11 @@ pip install -r requirements.txt
 
 ### Bước 4: Khởi chạy ứng dụng
 ```bash
+# Trên Windows
 python main.py
+
+# Trên Linux / macOS
+python3 main.py
 ```
 Sau khi khởi chạy thành công, mở trình duyệt web và truy cập:  
 **[http://localhost:8080](http://localhost:8080)**
