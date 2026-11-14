@@ -1,5 +1,3 @@
-"""Tab 1: Minh họa từng bước thuật toán TinyRC4 3-bit."""
-
 from __future__ import annotations
 from nicegui import ui
 
@@ -7,7 +5,7 @@ from src.core import TinyRC4Result, run_tiny_rc4
 
 
 def dung_tab_rc4_thu_nho() -> None:
-    """Khởi tạo giao diện mô phỏng từng bước thuật toán TinyRC4 3-bit."""
+    """Khởi tạo giao diện """
     with ui.card().classes("w-full p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs"):
         with ui.row().classes("w-full items-center justify-between mb-4 flex-wrap gap-3"):
             with ui.row().classes("items-center gap-3"):

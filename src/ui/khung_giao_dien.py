@@ -1,5 +1,3 @@
-"""Bố cục giao diện chính và thanh điều hướng."""
-
 from __future__ import annotations
 from nicegui import ui
 
@@ -47,7 +45,7 @@ def _tich_hop_css() -> None:
 
 
 def dung_khung_giao_dien() -> None:
-    """Khởi tạo bố cục ứng dụng với hệ thống tab ngang điều hướng."""
+    """Khởi tạo bố cục ứng dụng"""
     _tich_hop_css()
 
     ui.card.default_classes("bg-white border border-slate-200/90 rounded-xl shadow-xs")
@@ -73,10 +71,10 @@ def dung_khung_giao_dien() -> None:
         ):
             with ui.row().classes("items-center gap-3"):
                 with ui.avatar(size="md", color="blue-900").classes("text-white font-black text-xs shadow-xs"):
-                    ui.label("NEU")
+                    ui.label("RC4")
                 with ui.column().classes("gap-0"):
-                    ui.label("RC4 LAB — HỆ MÃ DÒNG TINYRC4 & RC4").classes("text-sm font-bold text-slate-900 leading-tight")
-                    ui.label("Khoa Công Nghệ Thông Tin — ĐH Kinh tế Quốc dân").classes("text-2xs text-slate-500 font-medium")
+                    ui.label("RC4 DEMO — HỆ MÃ DÒNG TINYRC4 & RC4").classes("text-sm font-bold text-slate-900 leading-tight")
+                    ui.label("Mô phỏng hệ mã dòng đối xứng").classes("text-2xs text-slate-500 font-medium")
 
             with ui.tabs().props("dense no-caps inline-label").classes("text-slate-600 font-semibold") as main_tabs:
                 tab_tiny = ui.tab("tab_tiny", label="1. TinyRC4 3-bit", icon="calculate")

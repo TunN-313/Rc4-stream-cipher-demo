@@ -1,5 +1,3 @@
-"""Tab 2: Mã hóa và giải mã văn bản UTF-8 bằng RC4 256-byte."""
-
 from __future__ import annotations
 from nicegui import ui
 
@@ -18,7 +16,7 @@ from src.core import (
 
 
 def dung_tab_rc4_van_ban() -> None:
-    """Khởi tạo giao diện mã hóa/giải mã văn bản UTF-8 và phân tích cấu trúc byte Unicode."""
+    """Khởi tạo giao diện"""
     with ui.card().classes("w-full p-6 space-y-4"):
         with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
             with ui.row().classes("items-center gap-3"):
@@ -47,7 +45,7 @@ def dung_tab_rc4_van_ban() -> None:
         with ui.row().classes("w-full items-center gap-2"):
             full_key = ui.input(
                 label="Khóa bí mật K (1..256 byte)",
-                value="NEU-CNTT-SecretKey-2026",
+                value="SecretKey-2026-StreamCipher",
             ).classes("flex-1")
             text_key_toggle = ui.toggle(["UTF-8", "Hex"], value="UTF-8").props("dense no-caps")
             btn_rand_key = ui.button("Khóa ngẫu nhiên", icon="casino").props("outline size=sm color=primary")

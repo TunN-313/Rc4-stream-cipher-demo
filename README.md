@@ -2,8 +2,6 @@
 
 Demo thực nghiệm hệ mã dòng **TinyRC4** (3-bit) và **RC4 chuẩn** (8-bit) xây dựng trên nền tảng **Python** và thư viện giao diện  **NiceGUI**.
 
-> **Học phần**: An toàn và Bảo mật Thông tin   
-> **Đơn vị**: Khoa Công nghệ Thông tin — Đại học Kinh tế Quốc dân (NEU)  
 > **Repository**: [https://github.com/TunN-313/Rc4-stream-cipher-demo](https://github.com/TunN-313/Rc4-stream-cipher-demo)  
 
 ---

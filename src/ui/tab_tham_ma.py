@@ -1,5 +1,3 @@
-"""Tab 5: Tấn công khôi phục khóa FMS trên giao thức WEP."""
-
 from __future__ import annotations
 import asyncio
 from typing import Optional
@@ -15,7 +13,7 @@ from src.core import (
 
 
 def dung_tab_tham_ma() -> None:
-    """Khởi tạo giao diện mô phỏng tấn công khôi phục khóa FMS trên WEP."""
+    """Khởi tạo giao diện"""
     with ui.column().classes("w-full gap-6 max-w-6xl mx-auto pb-8"):
         with ui.card().classes("w-full p-6 space-y-4"):
             with ui.row().classes("w-full items-center justify-between pb-2 border-b border-slate-100"):
